@@ -491,24 +491,26 @@
 				editandoIndex = index;
 			}
 			function recalcularTanque() {
-			let tanque = 0;
-
-			historico.forEach((item, i) => {
-				if (item.completo) {
-				tanque = 42;
-				} else {
-				tanque += item.litros;
-				}
-
-				if (item.consumo && item.kmRodado > 0) {
-				tanque -= (item.kmRodado / item.consumo);
-				}
-
-				tanque = Math.max(0, Math.min(42, tanque));
-			});
-
-			tanqueAtual = tanque;
-			localStorage.setItem("tanqueAtual", tanqueAtual);
+			  let tanque = 0;
+			
+			  const CAPACIDADE_TANQUE = 38; // MEDIA TANQUE ATÉ A PRIMEIRA TRAVA
+			
+			  historico.forEach((item, i) => {
+			    if (item.completo) {
+			      tanque = CAPACIDADE_TANQUE;
+			    } else {
+			      tanque += item.litros;
+			    }
+			
+			    if (item.consumo && item.kmRodado > 0) {
+			      tanque -= (item.kmRodado / item.consumo);
+			    }
+			
+			    tanque = Math.max(0, Math.min(CAPACIDADE_TANQUE, tanque));
+			  });
+			
+			  tanqueAtual = tanque;
+			  localStorage.setItem("tanqueAtual", tanqueAtual);
 			}
 
 			async function adicionar() {
