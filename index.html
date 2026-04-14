@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+	<head>
+		<meta charset="UTF-8">
+		<title>Consumo Honda Fit</title>
+		<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+		<style>
+			body {
+			font-family: Arial;
+			background: #0f172a;
+			color: #fff;
+			padding: 20px;
+			}
+			h1 { text-align: center; }
+			.container {
+			max-width: 1000px;
+			margin: auto;
+			}
+			.card {
+			background: #1e293b;
+			padding: 20px;
+			border-radius: 12px;
+			margin-bottom: 20px;
+			}
+			input, button {
+			padding: 10px;
+			margin: 5px;
+			border-radius: 8px;
+			border: none;
+			}
+			input { width: 150px; }
+			button {
+			background: #22c55e;
+			color: #000;
+			cursor: pointer;
+			}
+			button:hover { background: #16a34a; }
+			.reset {
+			background: #ef4444;
+			color: #fff;
+			}
+			.table {
+			width: 100%;
+			border-collapse: collapse;
+			max-height: 300px;
+			overflow-y: auto;
+			display: block;
+			}
+			.table th, .table td {
+			padding: 10px;
+			border-bottom: 1px solid #334155;
+			text-align: center;
+			}
+			.highlight { color: #22c55e; font-weight: bold; }
+			.alert { color: #f87171; font-weight: bold; }
+			.status { font-size: 20px; font-weight: bold; }
+			.grid {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+				gap: 15px;
+				margin-top: 15px;
+			}
+
+			.kpi {
+				background: #0f172a;
+				padding: 15px;
+				border-radius: 12px;
+				text-align: center;
+				border: 1px solid #334155;
+				transition: 0.2s;
+			}
+
+			.kpi:hover {
+				transform: translateY(-3px);
+				border-color: #22c55e;
+			}
+
+			.kpi span {
+				font-size: 12px;
+				color: #94a3b8;
+				display: block;
+				margin-bottom: 5px;
+			}
+
+			.kpi strong {
+				font-size: 22px;
+				color: #22c55e;
+			}
+
+			.kpi small {
+				font-size: 12px;
+				color: #64748b;
+			}
+
+			.kpi.destaque {
+				background: linear-gradient(135deg, #22c55e22, #22c55e05);
+				border: 1px solid #22c55e;
+			}
+
+			.extra {
+				margin-top: 15px;
+				text-align: center;
+			}
+			.form-grid {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+				gap: 15px;
+				margin-top: 15px;
+			}
+
+			.input-group {
+				display: flex;
+				flex-direction: column;
+			}
+
+			.input-group label {
+				font-size: 12px;
+				color: #94a3b8;
+				margin-bottom: 5px;
+			}
+
+			.input-group input {
+				background: #0f172a;
+				border: 1px solid #334155;
+				color: #fff;
+				padding: 10px;
+				border-radius: 8px;
+				outline: none;
+				transition: 0.2s;
+			}
+
+			.input-group input:focus {
+				border-color: #22c55e;
+				box-shadow: 0 0 0 2px #22c55e33;
+			}
+
+			/* footer */
+			.form-footer {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				margin-top: 15px;
+				flex-wrap: wrap;
+				gap: 10px;
+			}
+
+			/* checkbox bonito */
+			.check {
+				display: flex;
+				align-items: center;
+				cursor: pointer;
+				gap: 8px;
+				font-size: 14px;
+			}
+
+			.check input {
+				display: none;
+			}
+
+			.check span {
+				width: 18px;
+				height: 18px;
+				border-radius: 5px;
+				border: 1px solid #334155;
+				background: #0f172a;
+				position: relative;
+			}
+
+			.check input:checked + span {
+				background: #22c55e;
+				border-color: #22c55e;
+			}
+
+			.check input:checked + span::after {
+				content: "✓";
+				position: absolute;
+				top: 0;
+				left: 4px;
+				color: #000;
+				font-size: 12px;
+			}
+
+			/* botões */
+			.acoes {
+				display: flex;
+				gap: 10px;
+			}
+
+			button {
+				padding: 10px 15px;
+				border-radius: 8px;
+				border: none;
+				cursor: pointer;
+				font-weight: bold;
+				transition: 0.2s;
+			}
+
+			button:hover {
+				transform: scale(1.05);
+			}
+
+			.reset {
+				background: #ef4444;
+				color: #fff;
+			}
+			.modern {
+				width: 100%;
+				border-collapse: collapse;
+				overflow: hidden;
+				border-radius: 12px;
+			}
+
+			.modern thead {
+				background: #0f172a;
+			}
+
+			.modern th {
+				padding: 12px;
+				font-size: 12px;
+				color: #94a3b8;
+				font-weight: 500;
+				text-transform: uppercase;
+				letter-spacing: 0.5px;
+			}
+
+			.modern td {
+				padding: 12px;
+				font-size: 14px;
+				border-top: 1px solid #334155;
+			}
+
+			.modern tbody tr {
+				transition: 0.2s;
+			}
+
+			.modern tbody tr:hover {
+				background: #0f172a;
+				transform: scale(1.01);
+			}
+
+			/* zebra leve */
+			.modern tbody tr:nth-child(even) {
+				background: #1a2436;
+			}
+
+			/* destaque números */
+			.td-km {
+				color: #22c55e;
+				font-weight: bold;
+			}
+
+			.td-consumo {
+				color: #38bdf8;
+			}
+
+			.td-custo {
+				color: #facc15;
+			}
+
+		</style>
+	</head>
+	<body>
+		<div class="container">
+			<h1>🚗 Controle de Consumo - Fit</h1>
+			<div class="card">
+				<h3>⛽ Novo Abastecimento</h3>
+
+				<div class="form-grid">
+					<div class="input-group">
+						<label>Data</label>
+						<input type="date" id="data">
+					</div>
+
+					<div class="input-group">
+						<label>Km atual</label>
+						<input type="number" step="0.1" id="km">
+					</div>
+
+					<div class="input-group">
+						<label>Litros</label>
+						<input type="number" step="0.1" id="litros">
+					</div>
+
+					<div class="input-group">
+						<label>R$/L</label>
+						<input type="number" step="0.01" id="valor">
+					</div>
+				</div>
+
+				<div class="form-footer">
+					<label class="check">
+						<input type="checkbox" id="completo" checked>
+						<span></span>
+						Tanque cheio
+					</label>
+
+					<div class="acoes">
+						<button onclick="adicionar()">Adicionar</button>
+						<button class="reset" onclick="resetar()">Resetar</button>
+					</div>
+				</div>
+			</div>
+			<div class="card">
+			<h3>📅 Selecionar período</h3>
+
+			<div style="display:flex; gap:10px; flex-wrap:wrap;">
+				
+				<select id="mesFiltro">
+				<option value="0">Janeiro</option>
+				<option value="1">Fevereiro</option>
+				<option value="2">Março</option>
+				<option value="3">Abril</option>
+				<option value="4">Maio</option>
+				<option value="5">Junho</option>
+				<option value="6">Julho</option>
+				<option value="7">Agosto</option>
+				<option value="8">Setembro</option>
+				<option value="9">Outubro</option>
+				<option value="10">Novembro</option>
+				<option value="11">Dezembro</option>
+				</select>
+
+				<input type="number" id="anoFiltro" placeholder="Ano" style="width:100px">
+
+				<button onclick="atualizar()">Aplicar</button>
+
+			</div>
+			</div>
+			<div class="card">
+				<h3>📊 Resumo - <span id="periodo"></span></h3>
+
+				<div class="grid">
+					<div class="kpi">
+						<span>Média</span>
+						<strong id="media">-</strong>
+						<small>km/l</small>
+					</div>
+
+					<div class="kpi">
+						<span>Autonomia</span>
+						<strong id="autonomia">-</strong>
+						<small>km</small>
+					</div>
+
+					<div class="kpi">
+						<span>Gasto mês</span>
+						<strong id="gastoMes">-</strong>
+					</div>
+
+					<div class="kpi">
+						<span>Custo/dia</span>
+						<strong id="custoDia">-</strong>
+					</div>
+
+					<div class="kpi">
+						<span>Km/dia</span>
+						<strong id="kmDia">-</strong>
+					</div>
+					<div class="kpi">
+						<span>Litros mês</span>
+						<strong id="litrosMes">-</strong>
+						<small>L</small>
+					</div>
+					<div class="kpi destaque">
+						<span>Próx abastecimento</span>
+						<strong id="previsao">-</strong>
+					</div>
+				</div>
+
+				<div class="extra">
+					<p>🟢 Melhor: <span id="melhor"></span> | 🔴 Pior: <span id="pior"></span></p>
+					<p id="status" class="status"></p>
+					<p id="alerta" class="alert"></p>
+				</div>
+			</div>
+			<div class="card">
+				<h3>Gráfico</h3>
+				<canvas id="grafico"></canvas>
+			</div>
+			<div class="card">
+				<h3>Histórico</h3>
+				<table class="table modern">
+					<thead>
+						<tr>
+							<th>Data</th>
+							<th>Km</th>
+							<th>Km rodados</th>
+							<th>Dias</th>
+							<th>Litros</th>
+							<th>Km/L</th>
+							<th>R$/Km</th>
+							<th>Ações</th>
+						</tr>
+					</thead>
+					<tbody id="tabela"></tbody>
+				</table>
+			</div>
+		</div>
+		<script type="module">
+			import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+			import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+			import { query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+			const firebaseConfig = {
+				apiKey: "AIzaSyDHEoFdMIs6NFh5BmcA3eJaYnTX02CqZAA",
+				authDomain: "controle-gasolina-8bcfe.firebaseapp.com",
+				projectId: "controle-gasolina-8bcfe",
+				storageBucket: "controle-gasolina-8bcfe.firebasestorage.app",
+				messagingSenderId: "360520889859",
+				appId: "1:360520889859:web:636b09ad7d4c405de10036",
+				measurementId: "G-79KLQPTQYR"
+			};
+
+			const app = initializeApp(firebaseConfig);
+			const db = getFirestore(app);
+
+			window.db = db;
+			window.adicionar = adicionar;
+			window.excluir = excluir;
+			window.editar = editar;
+			window.resetar = resetar;
+			window.atualizar = atualizar;
+
+			let historico = [];
+			let tanqueAtual = parseFloat(localStorage.getItem("tanqueAtual")) || 0;
+			let chart;
+			let editandoIndex = null;
+			
+			function parseDataLocal(valor) {
+			  if (!valor) return new Date();
+
+			  const [ano, mes, dia] = valor.split("-");
+			  return new Date(ano, mes - 1, dia);
+			}
+			async function carregarDados() {
+			historico = [];
+
+			const querySnapshot = await getDocs(collection(db, "abastecimentos"));
+
+			querySnapshot.forEach((docItem) => {
+				historico.push({
+				id: docItem.id,
+				...docItem.data()
+				});
+			});
+
+			recalcularHistorico();
+			recalcularTanque();
+			atualizar();
+			}
+			async function resetar() {
+			if (confirm("Apagar tudo?")) {
+				const snapshot = await getDocs(collection(db, "abastecimentos"));
+
+				const promises = [];
+				snapshot.forEach((docItem) => {
+				promises.push(deleteDoc(doc(db, "abastecimentos", docItem.id)));
+				});
+
+				await Promise.all(promises);
+
+				historico = [];
+				tanqueAtual = 0;
+
+				atualizar();
+			}
+			}
+			async function excluir(index) {
+			if (confirm("Excluir registro?")) {
+				const id = historico[index].id;
+
+				await deleteDoc(doc(db, "abastecimentos", id));
+
+				historico.splice(index, 1);
+
+				recalcularHistorico();
+				recalcularTanque();
+				atualizar();
+			}
+			}
+			function editar(index) {
+				const item = historico[index];
+
+				dataEl.value = item.dataISO.split("T")[0];
+				kmEl.value = item.km;
+				litrosEl.value = item.litros;
+				valorEl.value = item.valor;
+
+				document.getElementById("completo").checked = item.completo;
+
+				editandoIndex = index;
+			}
+			function recalcularTanque() {
+			let tanque = 0;
+
+			historico.forEach((item, i) => {
+				if (item.completo) {
+				tanque = 42;
+				} else {
+				tanque += item.litros;
+				}
+
+				if (item.consumo && item.kmRodado > 0) {
+				tanque -= (item.kmRodado / item.consumo);
+				}
+
+				tanque = Math.max(0, Math.min(42, tanque));
+			});
+
+			tanqueAtual = tanque;
+			localStorage.setItem("tanqueAtual", tanqueAtual);
+			}
+
+			async function adicionar() {
+			  const km = parseFloat(kmEl.value);
+			  const litros = parseFloat(litrosEl.value);
+			  const valor = parseFloat(valorEl.value);
+			  const completo = document.getElementById("completo").checked;
+			
+			  if (!km || !litros || !valor) return alert("Preencha tudo!");
+			
+			  const hoje = parseDataLocal(dataEl.value);
+			  let kmRodado = 0, consumo = null, custoKm = null, dias = null;
+			
+			  if (historico.length > 0) {
+				historico.sort((a, b) => new Date(a.dataISO) - new Date(b.dataISO));
+				let ultimo = historico.at(-1);
+
+				if (editandoIndex !== null) {
+					const anterior = historico[editandoIndex - 1];
+					const proximo = historico[editandoIndex + 1];
+
+					if (anterior && hoje <= new Date(anterior.dataISO)) {
+						return alert("Data menor ou igual ao anterior!");
+					}
+
+					if (proximo && hoje >= new Date(proximo.dataISO)) {
+						return alert("Data maior ou igual ao próximo!");
+					}
+
+					if (anterior && km <= anterior.km) {
+						return alert("KM menor que o anterior!");
+					}
+
+					if (proximo && km >= proximo.km) {
+						return alert("KM maior que o próximo!");
+					}
+
+					if (anterior) {
+						dias = Math.max(1, Math.round((hoje - new Date(anterior.dataISO)) / (1000*60*60*24)));
+						kmRodado = km - anterior.km;
+					} else {
+						dias = 0;
+						kmRodado = 0;
+					}
+
+				} else {
+					if (ultimo && hoje <= new Date(ultimo.dataISO)) {
+						return alert("Data deve ser maior que o último registro!");
+					}
+					if (ultimo && km <= ultimo.km) {
+						return alert("KM inválido");
+					}
+					if (ultimo) {
+						dias = Math.max(1, Math.round((hoje - new Date(ultimo.dataISO)) / (1000*60*60*24)));
+						kmRodado = km - ultimo.km;
+					}
+				}
+			
+				// calcular consumo se tanque cheio
+				if (completo && kmRodado > 0) {
+				  consumo = kmRodado / litros;
+				  custoKm = (litros * valor) / kmRodado;
+				}
+			
+				// 🔥 calcular média REAL pelo histórico
+				let totalKm = 0;
+				let totalLitros = 0;
+			
+				historico.forEach(item => {
+				  if (item.consumo) {
+					totalKm += item.kmRodado;
+					totalLitros += item.litros;
+				  }
+				});
+			
+				let mediaReal = totalLitros > 0 ? (totalKm / totalLitros) : 0;
+			  }
+			  	const dataObj = new Date(hoje);
+				const novoRegistro = {
+				data: hoje.toLocaleDateString(),
+				dataISO: hoje.toISOString(),
+
+				mes: dataObj.getMonth(),   // 0-11
+				ano: dataObj.getFullYear(),
+
+				km, litros, valor,
+				kmRodado, consumo, custoKm,
+				dias,
+				completo 
+				};
+				if (editandoIndex !== null) {
+				const id = historico[editandoIndex].id;
+
+				await updateDoc(doc(db, "abastecimentos", id), novoRegistro);
+
+				editandoIndex = null;
+				} else {
+				const docRef = await addDoc(collection(db, "abastecimentos"), novoRegistro);
+				novoRegistro.id = docRef.id;
+				historico.push(novoRegistro);
+				}
+
+				recalcularHistorico();
+				recalcularTanque();
+				atualizar();
+			
+			  kmEl.value = litrosEl.value = valorEl.value = dataEl.value = "";
+			}
+			
+			const kmEl = document.getElementById("km");
+			const mediaEl = document.getElementById("media");
+			const autonomiaEl = document.getElementById("autonomia");
+			const gastoMesEl = document.getElementById("gastoMes");
+			const custoDiaEl = document.getElementById("custoDia");
+			const melhorEl = document.getElementById("melhor");
+			const piorEl = document.getElementById("pior");
+			const statusEl = document.getElementById("status");
+			const alertaEl = document.getElementById("alerta");
+			const tabela = document.getElementById("tabela");
+			const grafico = document.getElementById("grafico");
+			const litrosEl = document.getElementById("litros");
+			const valorEl = document.getElementById("valor");
+			const previsaoEl = document.getElementById("previsao");
+			const dataEl = document.getElementById("data");
+			const litrosMesEl = document.getElementById("litrosMes");
+			const mesFiltroEl = document.getElementById("mesFiltro");
+			const anoFiltroEl = document.getElementById("anoFiltro");
+
+			// padrão = hoje
+			const hoje = new Date();
+			mesFiltroEl.value = hoje.getMonth();
+			anoFiltroEl.value = hoje.getFullYear();
+			function recalcularHistorico() {
+			historico.sort((a, b) => new Date(a.dataISO) - new Date(b.dataISO));
+
+			for (let i = 1; i < historico.length; i++) {
+				const atual = historico[i];
+				const anterior = historico[i - 1];
+
+				const dataAtual = new Date(atual.dataISO);
+				const dataAnterior = new Date(anterior.dataISO);
+
+				atual.kmRodado = atual.km - anterior.km;
+				atual.dias = Math.max(1, Math.round((dataAtual - dataAnterior) / (1000*60*60*24)));
+
+				if (atual.completo && atual.kmRodado > 0) {
+				atual.consumo = atual.kmRodado / atual.litros;
+				atual.custoKm = (atual.litros * atual.valor) / atual.kmRodado;
+				}
+			}
+			}
+			function atualizar() {
+			  tabela.innerHTML = "";
+				let historicoOrdenado = [...historico].sort(
+				  (a, b) => new Date(a.dataISO) - new Date(b.dataISO)
+				);
+				let totalKm = 0, totalLitros = 0;
+				let consumos = [];
+				let gastoMes = 0;
+				let totalDias = 0, totalKmDia = 0;
+				let litrosMes = 0;
+			
+				const mesAtual = parseInt(mesFiltroEl.value);
+				const anoAtual = parseInt(anoFiltroEl.value);
+				const nomesMeses = [
+				"Jan","Fev","Mar","Abr","Mai","Jun",
+				"Jul","Ago","Set","Out","Nov","Dez"
+				];
+
+				document.getElementById("periodo").innerText =
+				`${nomesMeses[mesAtual]}/${anoAtual}`;
+			
+				historicoOrdenado.forEach((item, i) => {
+
+				const indexReal = historico.findIndex(h => h.dataISO === item.dataISO);
+
+				let dias = "-";
+				const dataItem = new Date(item.dataISO);
+				const mesItem = dataItem.getMonth();
+				const anoItem = dataItem.getFullYear();
+
+				if (mesItem === mesAtual && anoItem === anoAtual && i > 0) {
+					const atual = new Date(item.dataISO);
+
+					const anteriorItem = historicoOrdenado
+					.slice(0, i)
+					.reverse()
+					.find(x => {
+						const d = new Date(x.dataISO);
+						return d.getMonth() === mesAtual && d.getFullYear() === anoAtual;
+					});
+
+					if (anteriorItem) {
+					const anterior = new Date(anteriorItem.dataISO);
+
+					dias = Math.max(
+						1,
+						Math.round((atual - anterior) / (1000 * 60 * 60 * 24))
+					);
+					}
+				}
+				// TUDO filtrado por mês
+				if (mesItem === mesAtual && anoItem === anoAtual) {
+					tabela.innerHTML += `
+					<tr>
+						<td>${item.data}</td>
+						<td class="td-km">${item.km}</td>
+						<td>${item.kmRodado || "-"}</td>
+						<td>${dias !== "-" ? dias + "d" : "-"}</td>
+						<td>${item.litros}</td>
+						<td class="td-consumo">${item.consumo ? item.consumo.toFixed(2) : "-"}</td>
+						<td class="td-custo">${item.custoKm ? item.custoKm.toFixed(2) : "-"}</td>
+						<td>
+							<button onclick="editar(${indexReal})">✏️</button>
+							<button onclick="excluir(${indexReal})">🗑️</button>
+						</td>
+					</tr>`;
+					// KPIs
+					litrosMes += item.litros;
+					gastoMes += item.litros * item.valor;
+
+					// consumo
+					if (item.consumo) {
+						totalKm += item.kmRodado;
+						totalLitros += item.litros;
+						consumos.push(item.consumo);
+					}
+
+					// km/dia
+					if (dias !== "-" && item.kmRodado) {
+						totalDias += dias;
+						totalKmDia += item.kmRodado;
+					}
+				}
+			  });
+			
+			  let media = totalLitros > 0 ? (totalKm / totalLitros) : 0;
+			  let mediaKmDia = totalDias > 0 ? (totalKmDia / totalDias) : 0;
+			     if (!isFinite(mediaKmDia)) mediaKmDia = 0;
+			  
+				mediaEl.innerText = media.toFixed(2);
+			
+				// calcula autonomia como número
+				let autonomia = media * tanqueAtual;
+				autonomiaEl.innerText = autonomia.toFixed(0);
+
+				
+				let diasRestantes = mediaKmDia > 0 ? (autonomia / mediaKmDia) : 0;
+			
+				if (mediaKmDia > 0 && autonomia > 0) {
+				  const hoje = new Date();
+				  const dias = Math.max(0, Math.ceil(diasRestantes));
+				  
+				  const dataPrevista = new Date(hoje);
+				  dataPrevista.setDate(hoje.getDate() + dias);
+			
+				  if (dias === 0) {
+				  previsaoEl.innerText = "HOJE ⚠️";
+				  previsaoEl.style.color = "#ef4444"; // vermelho
+				} else if (dias === 1) {
+				  previsaoEl.innerText = `${dataPrevista.toLocaleDateString()} (AMANHÃ)`;
+				  previsaoEl.style.color = "#facc15"; // amarelo
+				} else {
+				  previsaoEl.innerText = `${dataPrevista.toLocaleDateString()} (${dias} dias)`;
+				  previsaoEl.style.color = "#22c55e"; // verde
+				}
+			
+				} else {
+				  previsaoEl.innerText = "-";
+				}
+			
+				gastoMesEl.innerText = "R$ " + gastoMes.toFixed(2);
+				litrosMesEl.innerText = litrosMes.toFixed(1);
+			
+				custoDiaEl.innerText = historico.length ? "R$ " + (totalDias > 0 ? (gastoMes / totalDias) : 0).toFixed(2) : "-";
+				document.getElementById("kmDia").innerText = mediaKmDia.toFixed(1);
+			
+				if (consumos.length) {
+				  melhorEl.innerText = Math.max(...consumos).toFixed(2);
+				  piorEl.innerText = Math.min(...consumos).toFixed(2);
+				} else {
+				  melhorEl.innerText = "-";
+				  piorEl.innerText = "-";
+				}
+			
+			  gerarStatus(media, consumos);
+			  gerarGrafico(consumos);
+			}
+			
+			function gerarStatus(media, consumos) {
+			  if (!consumos.length) return;
+			
+			  const ultimo = consumos.at(-1);
+			
+			  if (ultimo >= media * 0.95) {
+			    statusEl.innerText = "🟢 BOM";
+			  } else if (ultimo >= media * 0.85) {
+			    statusEl.innerText = "🟡 NORMAL";
+			  } else {
+			    statusEl.innerText = "🔴 RUIM";
+			  }
+			
+			  if (ultimo < media * 0.85) {
+			    alertaEl.innerText = "⚠️ Consumo abaixo do normal!";
+			  } else {
+			    alertaEl.innerText = "";
+			  }
+			}
+			
+			function gerarGrafico(consumos) {
+			if (chart) chart.destroy();
+
+			const ctx = grafico.getContext("2d");
+
+			// gradient
+			const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+			gradient.addColorStop(0, "rgba(34,197,94,0.4)");
+			gradient.addColorStop(1, "rgba(34,197,94,0)");
+
+			// média
+			const media = consumos.length
+				? consumos.reduce((a, b) => a + b, 0) / consumos.length
+				: 0;
+
+			chart = new Chart(ctx, {
+				type: "line",
+				data: {
+				labels: consumos.map((_, i) => `#${i + 1}`),
+				datasets: [
+					{
+					label: "Consumo (Km/L)",
+					data: consumos,
+					tension: 0.4, // curva suave
+					fill: true,
+					backgroundColor: gradient,
+					borderColor: "#22c55e",
+					borderWidth: 2,
+					pointRadius: 4,
+					pointHoverRadius: 6
+					},
+					{
+					label: "Média",
+					data: consumos.map(() => media),
+					borderColor: "#facc15",
+					borderDash: [5, 5],
+					pointRadius: 0,
+					borderWidth: 2
+					}
+				]
+				},
+				options: {
+				responsive: true,
+				plugins: {
+					legend: {
+					labels: {
+						color: "#fff"
+					}
+					},
+					tooltip: {
+					backgroundColor: "#020617",
+					borderColor: "#22c55e",
+					borderWidth: 1,
+					titleColor: "#22c55e",
+					bodyColor: "#fff",
+					padding: 10
+					}
+				},
+				scales: {
+					x: {
+					ticks: { color: "#94a3b8" },
+					grid: { display: false }
+					},
+					y: {
+					ticks: { color: "#94a3b8" },
+					grid: {
+						color: "#1e293b"
+					}
+					}
+				}
+				}
+			});
+			}
+			
+			window.onload = carregarDados;
+		</script>
+	</body>
+</html>
