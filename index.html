@@ -492,18 +492,13 @@
 			}
 			function recalcularTanque() {
 			  let tanque = 0;
+			  const CAPACIDADE_TANQUE = 38;
 			
-			  const CAPACIDADE_TANQUE = 38; // MEDIA TANQUE ATÉ A PRIMEIRA TRAVA
-			
-			  historico.forEach((item, i) => {
+			  historico.forEach((item) => {
 			    if (item.completo) {
 			      tanque = CAPACIDADE_TANQUE;
 			    } else {
 			      tanque += item.litros;
-			    }
-			
-			    if (item.consumo && item.kmRodado > 0) {
-			      tanque -= (item.kmRodado / item.consumo);
 			    }
 			
 			    tanque = Math.max(0, Math.min(CAPACIDADE_TANQUE, tanque));
@@ -512,7 +507,6 @@
 			  tanqueAtual = tanque;
 			  localStorage.setItem("tanqueAtual", tanqueAtual);
 			}
-
 			async function adicionar() {
 			  const km = parseFloat(kmEl.value);
 			  const litros = parseFloat(litrosEl.value);
