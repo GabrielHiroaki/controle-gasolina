@@ -445,8 +445,9 @@
 		</div>
 		<script type="module">
 			import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-			import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+			import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 			import { query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+			import { onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 			const firebaseConfig = {
 				apiKey: "AIzaSyDHEoFdMIs6NFh5BmcA3eJaYnTX02CqZAA",
@@ -479,21 +480,21 @@
 			  const [ano, mes, dia] = valor.split("-");
 			  return new Date(ano, mes - 1, dia);
 			}
-			async function carregarDados() {
-			historico = [];
-
-			const querySnapshot = await getDocs(collection(db, "abastecimentos"));
-
-			querySnapshot.forEach((docItem) => {
-				historico.push({
-				id: docItem.id,
-				...docItem.data()
-				});
-			});
-
-			recalcularHistorico();
-			recalcularTanque();
-			atualizar();
+			function carregarDados() {
+			  onSnapshot(collection(db, "abastecimentos"), (snapshot) => {
+			    historico = [];
+			
+			    snapshot.forEach((docItem) => {
+			      historico.push({
+			        id: docItem.id,
+			        ...docItem.data()
+			      });
+			    });
+			
+			    recalcularHistorico();
+			    recalcularTanque();
+			    atualizar();
+			  });
 			}
 			async function resetar() {
 			if (confirm("Apagar tudo?")) {
@@ -726,7 +727,7 @@
 			
 				historicoOrdenado.forEach((item, i) => {
 
-				const indexReal = historico.findIndex(h => h.dataISO === item.dataISO);
+				const indexReal = historico.findIndex(h => h.id === item.id);
 
 				let dias = "-";
 				const dataItem = new Date(item.dataISO);
