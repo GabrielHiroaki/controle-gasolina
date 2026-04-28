@@ -369,7 +369,7 @@
 
 				<input type="number" id="anoFiltro" placeholder="Ano" style="width:100px">
 
-				<button onclick="atualizar()">Aplicar</button>
+				<button onclick="gerarPDFAnual()">📄 PDF Anual</button>
 
 			</div>
 			</div>
@@ -443,6 +443,7 @@
 				</table>
 			</div>
 		</div>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 		<script type="module">
 			import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 			import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -612,9 +613,12 @@
 				}
 			
 				// calcular consumo se tanque cheio
-				if (completo && kmRodado > 0) {
-				  consumo = kmRodado / litros;
-				  custoKm = (litros * valor) / kmRodado;
+				if (completo && kmRodado > 0 && litros > 0) {
+				consumo = kmRodado / litros;
+				custoKm = (litros * valor) / kmRodado;
+				} else {
+				consumo = null;
+				custoKm = null;
 				}
 			
 				// 🔥 calcular média REAL pelo histórico
@@ -699,8 +703,11 @@
 				atual.dias = Math.max(1, Math.round((dataAtual - dataAnterior) / (1000*60*60*24)));
 
 				if (atual.completo && atual.kmRodado > 0) {
-				atual.consumo = atual.kmRodado / atual.litros;
-				atual.custoKm = (atual.litros * atual.valor) / atual.kmRodado;
+					atual.consumo = atual.kmRodado / atual.litros;
+					atual.custoKm = (atual.litros * atual.valor) / atual.kmRodado;
+
+					if (!isFinite(atual.consumo)) atual.consumo = null;
+					if (!isFinite(atual.custoKm)) atual.custoKm = null;
 				}
 			}
 			}
@@ -775,10 +782,10 @@
 					gastoMes += item.litros * item.valor;
 
 					// consumo
-					if (item.consumo) {
-						totalKm += item.kmRodado;
-						totalLitros += item.litros;
-						consumos.push(item.consumo);
+					if (item.consumo && isFinite(item.consumo)) {
+					totalKm += item.kmRodado;
+					totalLitros += item.litros;
+					consumos.push(item.consumo);
 					}
 
 					// km/dia
@@ -789,14 +796,17 @@
 				}
 			  });
 			
-			  let media = totalLitros > 0 ? (totalKm / totalLitros) : 0;
-			  let mediaKmDia = totalDias > 0 ? (totalKmDia / totalDias) : 0;
-			     if (!isFinite(mediaKmDia)) mediaKmDia = 0;
+				let media = totalLitros > 0 ? (totalKm / totalLitros) : 0;
+				if (!isFinite(media)) media = 0;
+
+				let mediaKmDia = totalDias > 0 ? (totalKmDia / totalDias) : 0;
+				if (!isFinite(mediaKmDia)) mediaKmDia = 0;
 			  
-				mediaEl.innerText = media.toFixed(2);
+				mediaEl.innerText = isFinite(media) ? media.toFixed(2) : "-";
 			
 				// calcula autonomia como número
 				let autonomia = media * tanqueAtual;
+				if (!isFinite(autonomia)) autonomia = 0;
 				autonomiaEl.innerText = autonomia.toFixed(0);
 
 				
@@ -831,11 +841,14 @@
 				document.getElementById("kmDia").innerText = mediaKmDia.toFixed(1);
 			
 				if (consumos.length) {
-				  melhorEl.innerText = Math.max(...consumos).toFixed(2);
-				  piorEl.innerText = Math.min(...consumos).toFixed(2);
+				const melhor = Math.max(...consumos);
+				const pior = Math.min(...consumos);
+
+				melhorEl.innerText = isFinite(melhor) ? melhor.toFixed(2) : "-";
+				piorEl.innerText = isFinite(pior) ? pior.toFixed(2) : "-";
 				} else {
-				  melhorEl.innerText = "-";
-				  piorEl.innerText = "-";
+				melhorEl.innerText = "-";
+				piorEl.innerText = "-";
 				}
 			
 			  gerarStatus(media, consumos);
@@ -944,8 +957,241 @@
 				}
 			});
 			}
-			
+			async function gerarPDFAnual() {
+				if (!historico.length) {
+					alert("Sem dados para gerar relatório!");
+					return;
+				}
+
+				if (!window.jspdf) {
+					alert("Erro ao carregar biblioteca PDF!");
+					return;
+				}
+
+				const { jsPDF } = window.jspdf;
+				const doc = new jsPDF();
+				// 🌫️ fundo suave (cinza azulado claro, não agride o olho)
+				doc.setFillColor(225, 230, 235);
+				doc.rect(0, 0, 210, 297, "F");
+				const anoSelecionado = parseInt(anoFiltroEl.value);
+
+				const meses = [
+					"Jan","Fev","Mar","Abr","Mai","Jun",
+					"Jul","Ago","Set","Out","Nov","Dez"
+				];
+
+				let dadosMes = Array(12).fill().map(() => ({
+					km: 0,
+					litros: 0,
+					gasto: 0,
+					abastecimentos: 0
+				}));
+
+				// AGRUPAR
+				historico.forEach(item => {
+					const d = new Date(item.dataISO);
+					if (d.getFullYear() === anoSelecionado) {
+						const m = d.getMonth();
+
+						dadosMes[m].litros += item.litros;
+						dadosMes[m].gasto += item.litros * item.valor;
+						dadosMes[m].abastecimentos++;
+
+						if (item.consumo && item.kmRodado) {
+							dadosMes[m].km += item.kmRodado;
+						}
+					}
+				});
+
+				let totalKm = 0, totalLitros = 0, totalGasto = 0;
+
+				dadosMes.forEach(m => {
+					totalKm += m.km;
+					totalLitros += m.litros;
+					totalGasto += m.gasto;
+				});
+
+				const mediaAnual = totalLitros > 0 ? (totalKm / totalLitros) : 0;
+
+				let melhorMes = "-";
+				let piorMes = "-";
+				let melhorValor = null;
+				let piorValor = null;
+
+				dadosMes.forEach((m, i) => {
+					if (m.km > 0 && m.litros > 0) {
+						let consumo = m.km / m.litros;
+
+						if (melhorValor === null || consumo > melhorValor) {
+							melhorValor = consumo;
+							melhorMes = meses[i];
+						}
+
+						if (piorValor === null || consumo < piorValor) {
+							piorValor = consumo;
+							piorMes = meses[i];
+						}
+					}
+				});
+
+				// 🎨 HEADER MODERNO
+				doc.setFillColor(2, 6, 23); 
+				doc.rect(0, 0, 210, 35, "F");
+				doc.setDrawColor(0, 255, 140);
+				doc.setLineWidth(0.5);
+
+				doc.setTextColor(255, 255, 255);
+				doc.setFontSize(20);
+				doc.text("RELATORIO DE CONSUMO", 10, 18);
+
+				doc.setFontSize(11);
+				doc.setTextColor(180, 180, 180);
+				doc.text("Ano " + anoSelecionado, 10, 26);
+
+				doc.setTextColor(0, 255, 140);
+				doc.text("Sistema de Controle", 150, 20);
+
+				// LINHA DIVISÓRIA
+				doc.setDrawColor(51, 65, 85);
+				doc.line(10, 30, 200, 30);
+
+
+				// 📊 KPIs EM GRID
+				let y = 45;
+
+				function kpiBox(x, y, titulo, valor) {
+					doc.setFillColor(10, 15, 30);
+					doc.setDrawColor(0, 255, 140);
+					doc.roundedRect(x, y, 90, 22, 4, 4, "FD"); // F + D (fill + border)
+
+					doc.setTextColor(180, 180, 180); 
+					doc.setFontSize(9);
+					doc.text(titulo, x + 5, y + 7);
+
+					doc.setTextColor(0, 255, 140);
+					doc.setFontSize(14);
+					doc.text(valor, x + 5, y + 16);
+				}
+
+				kpiBox(10, y, "Média KM/L", mediaAnual.toFixed(2));
+				kpiBox(110, y, "Total KM", totalKm.toFixed(0));
+
+				y += 28;
+
+				kpiBox(10, y, "Total Litros", totalLitros.toFixed(1) + " L");
+				kpiBox(110, y, "Gasto Total", "R$ " + totalGasto.toFixed(2));
+
+				y += 35;
+
+				// 🏆 DESTAQUES
+				doc.setFontSize(12);
+
+				if (melhorValor !== null) {
+					doc.setTextColor(255,255,255); // branco normal
+					doc.text(`Melhor: ${melhorMes} (${melhorValor.toFixed(2)} km/l)`, 10, y);
+				} else {
+					doc.setTextColor(0, 255, 140); // VERDE neon
+					doc.text("Melhor: Sem dados suficientes", 10, y);
+				}
+
+				y += 8;
+
+				doc.setTextColor(255, 120, 0);
+
+				doc.text(
+				`Pior: ${piorValor !== null ? piorMes + " (" + piorValor.toFixed(2) + " km/l)" : "Sem dados suficientes"}`,
+				10,
+				y
+				);
+
+				y += 18;
+
+				// 🧠 cabeçalho da tabela
+				doc.setTextColor(0, 255, 140);
+				doc.setFontSize(10);
+
+				doc.text("Mês", 12, y);
+				doc.text("KM", 40, y);
+				doc.text("Litros", 80, y);
+				doc.text("KM/L", 120, y);
+				doc.text("Gasto", 160, y);
+
+				y += 6;
+
+				// linha abaixo do header
+				doc.setDrawColor(0, 255, 140);
+				doc.setLineWidth(0.3);
+				doc.line(10, y, 200, y);
+
+				y += 4;
+				// 🔳 container da tabela (fundo + borda neon)
+				const tabelaYInicio = y;
+				const alturaLinha = 8;
+				const tabelaAltura = dadosMes.length * alturaLinha;
+				// 🔳 container da tabela (AGORA CERTO)
+				doc.setFillColor(3, 8, 20);
+				doc.roundedRect(8, tabelaYInicio - 6, 194, tabelaAltura + 6, 4, 4, "F");
+
+				// borda neon fina
+				doc.setDrawColor(0, 255, 140);
+				doc.setLineWidth(0.4);
+				doc.roundedRect(8, tabelaYInicio - 6, 194, tabelaAltura + 6, 4, 4, "D");
+
+				// glow leve
+				doc.setLineWidth(0.8);
+				doc.roundedRect(8.3, tabelaYInicio - 5.7, 193.4, tabelaAltura + 5.4, 4, 4, "D");
+				dadosMes.forEach((m, i) => {
+					if (y > 270) {
+						doc.addPage();
+						y = 20;
+					}
+
+					let consumo = (m.litros > 0 && m.km > 0) ? (m.km / m.litros) : 0;
+
+					// fundo SEMPRE escuro (zebra melhorado)
+					if (i % 2 === 0) {
+					doc.setFillColor(10, 15, 30); // azul escuro (igual KPIs)
+					} else {
+					doc.setFillColor(15, 23, 42); // variação do header
+					}
+					doc.rect(10, y - 4, 190, 8, "F");
+
+					const semDados = m.km === 0 && m.litros === 0;
+
+					if (semDados) {
+					doc.setTextColor(90, 90, 90); // mais apagado ainda
+					} else {
+					doc.setTextColor(220, 255, 240); // leve tom esverdeado
+					}
+					doc.setFontSize(10);
+
+					doc.text(`${meses[i]}`, 12, y);
+					doc.text(`${m.km.toFixed(0)} km`, 40, y);
+					doc.text(`${m.litros.toFixed(1)} L`, 80, y);
+					doc.text(`${consumo.toFixed(2)} km/l`, 120, y);
+					doc.text(`R$ ${m.gasto.toFixed(2)}`, 160, y);
+
+					y += 8;
+				});
+
+				// 📌 RODAPÉ
+				doc.setDrawColor(51, 65, 85);
+				doc.line(10, 285, 200, 285);
+
+				doc.setFontSize(8);
+				doc.setTextColor(180, 180, 180); 
+				doc.text("Gerado automaticamente pelo sistema", 10, 290);
+
+				doc.text(new Date().toLocaleString(), 200, 290, { align: "right" });
+
+				doc.save(`relatorio_${anoSelecionado}.pdf`);
+			}
+
+			window.gerarPDFAnual = gerarPDFAnual;
 			window.onload = carregarDados;
+
+			mesFiltroEl.addEventListener("change", atualizar);
+			anoFiltroEl.addEventListener("input", atualizar);
 		</script>
 	</body>
 </html>
