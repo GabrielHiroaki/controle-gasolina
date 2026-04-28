@@ -656,7 +656,6 @@
 				} else {
 				const docRef = await addDoc(collection(db, "abastecimentos"), novoRegistro);
 				novoRegistro.id = docRef.id;
-				historico.push(novoRegistro);
 				}
 
 				recalcularHistorico();
@@ -981,8 +980,10 @@
 				];
 
 				let dadosMes = Array(12).fill().map(() => ({
-					km: 0,
+					kmTotal: 0,
+					kmConsumo: 0,
 					litros: 0,
+					litrosConsumo: 0,
 					gasto: 0,
 					abastecimentos: 0
 				}));
@@ -997,8 +998,15 @@
 						dadosMes[m].gasto += item.litros * item.valor;
 						dadosMes[m].abastecimentos++;
 
+						// KM TOTAL (sempre soma se existir)
+						if (item.kmRodado) {
+							dadosMes[m].kmTotal += item.kmRodado;
+						}
+
+						// só entra na média se for válido
 						if (item.consumo && item.kmRodado) {
-							dadosMes[m].km += item.kmRodado;
+							dadosMes[m].kmConsumo += item.kmRodado;
+							dadosMes[m].litrosConsumo += item.litros; 
 						}
 					}
 				});
@@ -1006,8 +1014,8 @@
 				let totalKm = 0, totalLitros = 0, totalGasto = 0;
 
 				dadosMes.forEach(m => {
-					totalKm += m.km;
-					totalLitros += m.litros;
+					totalKm += m.kmConsumo;
+					totalLitros += m.litrosConsumo;
 					totalGasto += m.gasto;
 				});
 
@@ -1019,8 +1027,8 @@
 				let piorValor = null;
 
 				dadosMes.forEach((m, i) => {
-					if (m.km > 0 && m.litros > 0) {
-						let consumo = m.km / m.litros;
+					if (m.kmConsumo > 0 && m.litrosConsumo > 0) {
+						let consumo = m.kmConsumo / m.litrosConsumo;
 
 						if (melhorValor === null || consumo > melhorValor) {
 							melhorValor = consumo;
@@ -1087,7 +1095,7 @@
 				doc.setFontSize(12);
 
 				if (melhorValor !== null) {
-					doc.setTextColor(255,255,255); // branco normal
+					doc.setTextColor(0, 255, 140);
 					doc.text(`Melhor: ${melhorMes} (${melhorValor.toFixed(2)} km/l)`, 10, y);
 				} else {
 					doc.setTextColor(0, 255, 140); // VERDE neon
@@ -1111,10 +1119,11 @@
 				doc.setFontSize(10);
 
 				doc.text("Mês", 12, y);
-				doc.text("KM", 40, y);
-				doc.text("Litros", 80, y);
-				doc.text("KM/L", 120, y);
-				doc.text("Gasto", 160, y);
+				doc.text("KM Total", 60, y, { align: "right" });
+				doc.text("KM Consumo", 90, y, { align: "right" });
+				doc.text("L", 115, y, { align: "right" });
+				doc.text("KM/L", 140, y, { align: "right" });
+				doc.text("R$", 190, y, { align: "right" });
 
 				y += 6;
 
@@ -1146,7 +1155,9 @@
 						y = 20;
 					}
 
-					let consumo = (m.litros > 0 && m.km > 0) ? (m.km / m.litros) : 0;
+					let consumo = (m.litrosConsumo > 0 && m.kmConsumo > 0)
+						? (m.kmConsumo / m.litrosConsumo)
+						: 0;
 
 					// fundo SEMPRE escuro (zebra melhorado)
 					if (i % 2 === 0) {
@@ -1156,7 +1167,7 @@
 					}
 					doc.rect(10, y - 4, 190, 8, "F");
 
-					const semDados = m.km === 0 && m.litros === 0;
+					const semDados = m.kmTotal === 0 && m.litros === 0;
 
 					if (semDados) {
 					doc.setTextColor(90, 90, 90); // mais apagado ainda
@@ -1166,10 +1177,11 @@
 					doc.setFontSize(10);
 
 					doc.text(`${meses[i]}`, 12, y);
-					doc.text(`${m.km.toFixed(0)} km`, 40, y);
-					doc.text(`${m.litros.toFixed(1)} L`, 80, y);
-					doc.text(`${consumo.toFixed(2)} km/l`, 120, y);
-					doc.text(`R$ ${m.gasto.toFixed(2)}`, 160, y);
+					doc.text(`${m.kmTotal.toFixed(0)}`, 60, y, { align: "right" });
+					doc.text(`${m.kmConsumo.toFixed(0)}`, 90, y, { align: "right" });
+					doc.text(`${m.litros.toFixed(1)}`, 115, y, { align: "right" });
+					doc.text(`${consumo.toFixed(2)}`, 140, y, { align: "right" });
+					doc.text(`${m.gasto.toFixed(2)}`, 190, y, { align: "right" });
 
 					y += 8;
 				});
