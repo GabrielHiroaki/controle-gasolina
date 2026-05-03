@@ -720,6 +720,8 @@
 				let gastoMes = 0;
 				let totalDias = 0, totalKmDia = 0;
 				let litrosMes = 0;
+				let gastoValido = 0;
+				let diasValidos = 0;
 			
 				const mesAtual = parseInt(mesFiltroEl.value);
 				const anoAtual = parseInt(anoFiltroEl.value);
@@ -779,7 +781,10 @@
 					// KPIs
 					litrosMes += item.litros;
 					gastoMes += item.litros * item.valor;
-
+					if (i > 0 && item.dias) {
+					    gastoValido += item.litros * item.valor;
+					    diasValidos += item.dias;
+					}
 					// consumo
 					if (item.consumo && isFinite(item.consumo)) {
 					totalKm += item.kmRodado;
@@ -836,7 +841,9 @@
 				gastoMesEl.innerText = "R$ " + gastoMes.toFixed(2);
 				litrosMesEl.innerText = litrosMes.toFixed(1);
 			
-				custoDiaEl.innerText = historico.length ? "R$ " + (totalDias > 0 ? (gastoMes / totalDias) : 0).toFixed(2) : "-";
+				custoDiaEl.innerText = diasValidos > 0
+				  ? "R$ " + (gastoValido / diasValidos).toFixed(2)
+				  : "-";
 				document.getElementById("kmDia").innerText = mediaKmDia.toFixed(1);
 			
 				if (consumos.length) {
