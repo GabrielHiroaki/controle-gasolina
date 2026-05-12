@@ -688,27 +688,84 @@
 			const hoje = new Date();
 			mesFiltroEl.value = hoje.getMonth();
 			anoFiltroEl.value = hoje.getFullYear();
+			
 			function recalcularHistorico() {
-			historico.sort((a, b) => new Date(a.dataISO) - new Date(b.dataISO));
-
-			for (let i = 1; i < historico.length; i++) {
-				const atual = historico[i];
-				const anterior = historico[i - 1];
-
-				const dataAtual = new Date(atual.dataISO);
-				const dataAnterior = new Date(anterior.dataISO);
-
-				atual.kmRodado = atual.km - anterior.km;
-				atual.dias = Math.max(1, Math.round((dataAtual - dataAnterior) / (1000*60*60*24)));
-
-				if (atual.completo && atual.kmRodado > 0) {
-					atual.consumo = atual.kmRodado / atual.litros;
-					atual.custoKm = (atual.litros * atual.valor) / atual.kmRodado;
-
-					if (!isFinite(atual.consumo)) atual.consumo = null;
-					if (!isFinite(atual.custoKm)) atual.custoKm = null;
-				}
-			}
+			    historico.sort((a, b) => new Date(a.dataISO) - new Date(b.dataISO));
+			
+			    let litrosAcumulados = 0;
+			    let valorTotalAcumulado = 0;
+			    let kmInicio = null;
+			
+			    for (let i = 0; i < historico.length; i++) {
+			
+			        const atual = historico[i];
+			        const anterior = historico[i - 1];
+			
+			        atual.consumo = null;
+			        atual.custoKm = null;
+			        atual.litrosCalculados = null;
+			        atual.kmCalculado = null;
+			
+			        // calcula km rodado e dias
+			        if (anterior) {
+			
+			            const dataAtual = new Date(atual.dataISO);
+			            const dataAnterior = new Date(anterior.dataISO);
+			
+			            atual.kmRodado = atual.km - anterior.km;
+			
+			            atual.dias = Math.max(
+			                1,
+			                Math.round((dataAtual - dataAnterior) / (1000 * 60 * 60 * 24))
+			            );
+			
+			        } else {
+			
+			            atual.kmRodado = 0;
+			            atual.dias = 0;
+			        }
+			
+			        // inicia ciclo
+			        if (kmInicio === null) {
+			            kmInicio = atual.km;
+			        }
+			
+			        // acumula abastecimentos
+			        litrosAcumulados += atual.litros;
+			        valorTotalAcumulado += atual.litros * atual.valor;
+			
+			        // só calcula quando completar tanque
+			        if (atual.completo && anterior) {
+			
+			            const kmPercorrido = atual.km - kmInicio;
+			
+			            if (kmPercorrido > 0 && litrosAcumulados > 0) {
+			
+			                atual.consumo =
+			                    kmPercorrido / litrosAcumulados;
+			
+			                atual.custoKm =
+			                    valorTotalAcumulado / kmPercorrido;
+			
+			                // salva para média geral
+			                atual.litrosCalculados = litrosAcumulados;
+			                atual.kmCalculado = kmPercorrido;
+			
+			                if (!isFinite(atual.consumo)) {
+			                    atual.consumo = null;
+			                }
+			
+			                if (!isFinite(atual.custoKm)) {
+			                    atual.custoKm = null;
+			                }
+			            }
+			
+			            // reinicia ciclo
+			            litrosAcumulados = 0;
+			            valorTotalAcumulado = 0;
+			            kmInicio = atual.km;
+			        }
+			    }
 			}
 			function atualizar() {
 			  tabela.innerHTML = "";
@@ -787,9 +844,12 @@
 					}
 					// consumo
 					if (item.consumo && isFinite(item.consumo)) {
-					totalKm += item.kmRodado;
-					totalLitros += item.litros;
-					consumos.push(item.consumo);
+					
+					    totalKm += item.kmCalculado || 0;
+					
+					    totalLitros += item.litrosCalculados || 0;
+					
+					    consumos.push(item.consumo);
 					}
 
 					// km/dia
@@ -1011,9 +1071,11 @@
 						}
 
 						// só entra na média se for válido
-						if (item.consumo && item.kmRodado) {
-							dadosMes[m].kmConsumo += item.kmRodado;
-							dadosMes[m].litrosConsumo += item.litros; 
+						if (item.consumo && item.kmCalculado) {
+						
+						    dadosMes[m].kmConsumo += item.kmCalculado;
+						
+						    dadosMes[m].litrosConsumo += item.litrosCalculados || 0;
 						}
 					}
 				});
