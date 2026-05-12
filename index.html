@@ -690,11 +690,16 @@
 			anoFiltroEl.value = hoje.getFullYear();
 			
 			function recalcularHistorico() {
-			    historico.sort((a, b) => new Date(a.dataISO) - new Date(b.dataISO));
+			
+			    historico.sort((a, b) =>
+			        new Date(a.dataISO) - new Date(b.dataISO)
+			    );
 			
 			    let litrosAcumulados = 0;
 			    let valorTotalAcumulado = 0;
+			
 			    let kmInicio = null;
+			    let cicloAtivo = false;
 			
 			    for (let i = 0; i < historico.length; i++) {
 			
@@ -706,17 +711,20 @@
 			        atual.litrosCalculados = null;
 			        atual.kmCalculado = null;
 			
-			        // calcula km rodado e dias
+			        // KM rodado
 			        if (anterior) {
+			
+			            atual.kmRodado = atual.km - anterior.km;
 			
 			            const dataAtual = new Date(atual.dataISO);
 			            const dataAnterior = new Date(anterior.dataISO);
 			
-			            atual.kmRodado = atual.km - anterior.km;
-			
 			            atual.dias = Math.max(
 			                1,
-			                Math.round((dataAtual - dataAnterior) / (1000 * 60 * 60 * 24))
+			                Math.round(
+			                    (dataAtual - dataAnterior) /
+			                    (1000 * 60 * 60 * 24)
+			                )
 			            );
 			
 			        } else {
@@ -725,21 +733,38 @@
 			            atual.dias = 0;
 			        }
 			
-			        // inicia ciclo
-			        if (kmInicio === null) {
-			            kmInicio = atual.km;
+			        // ainda não existe referência válida
+			        if (!cicloAtivo) {
+			
+			            // espera primeiro tanque cheio
+			            if (atual.completo) {
+			
+			                cicloAtivo = true;
+			                kmInicio = atual.km;
+			
+			                litrosAcumulados = 0;
+			                valorTotalAcumulado = 0;
+			            }
+			
+			            continue;
 			        }
 			
-			        // acumula abastecimentos
+			        // acumula após o último cheio
 			        litrosAcumulados += atual.litros;
-			        valorTotalAcumulado += atual.litros * atual.valor;
 			
-			        // só calcula quando completar tanque
-			        if (atual.completo && anterior) {
+			        valorTotalAcumulado +=
+			            atual.litros * atual.valor;
 			
-			            const kmPercorrido = atual.km - kmInicio;
+			        // fecha ciclo
+			        if (atual.completo) {
 			
-			            if (kmPercorrido > 0 && litrosAcumulados > 0) {
+			            const kmPercorrido =
+			                atual.km - kmInicio;
+			
+			            if (
+			                kmPercorrido > 0 &&
+			                litrosAcumulados > 0
+			            ) {
 			
 			                atual.consumo =
 			                    kmPercorrido / litrosAcumulados;
@@ -747,23 +772,18 @@
 			                atual.custoKm =
 			                    valorTotalAcumulado / kmPercorrido;
 			
-			                // salva para média geral
-			                atual.litrosCalculados = litrosAcumulados;
-			                atual.kmCalculado = kmPercorrido;
+			                atual.kmCalculado =
+			                    kmPercorrido;
 			
-			                if (!isFinite(atual.consumo)) {
-			                    atual.consumo = null;
-			                }
-			
-			                if (!isFinite(atual.custoKm)) {
-			                    atual.custoKm = null;
-			                }
+			                atual.litrosCalculados =
+			                    litrosAcumulados;
 			            }
 			
 			            // reinicia ciclo
+			            kmInicio = atual.km;
+			
 			            litrosAcumulados = 0;
 			            valorTotalAcumulado = 0;
-			            kmInicio = atual.km;
 			        }
 			    }
 			}
