@@ -1100,15 +1100,30 @@
 					}
 				});
 
-				let totalKm = 0, totalLitros = 0, totalGasto = 0;
-
+				//  TOTAL REAL (independente de tanque cheio)
+				let totalKm = 0;
+				let totalLitros = 0;
+				let totalGasto = 0;
+				
+				// KM REAL DO CARRO
 				dadosMes.forEach(m => {
-					totalKm += m.kmConsumo;
-					totalLitros += m.litrosConsumo;
+					totalKm += m.kmTotal;     // soma TODOS km
+					totalLitros += m.litros; // soma TODOS litros
 					totalGasto += m.gasto;
 				});
-
-				const mediaAnual = totalLitros > 0 ? (totalKm / totalLitros) : 0;
+				
+				// média continua usando apenas abastecimentos válidos
+				let kmMedia = 0;
+				let litrosMedia = 0;
+				
+				dadosMes.forEach(m => {
+					kmMedia += m.kmConsumo;
+					litrosMedia += m.litrosConsumo;
+				});
+				
+				const mediaAnual = litrosMedia > 0
+					? (kmMedia / litrosMedia)
+					: 0;
 
 				let melhorMes = "-";
 				let piorMes = "-";
