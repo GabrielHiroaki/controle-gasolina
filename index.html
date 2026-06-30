@@ -298,7 +298,22 @@
 				padding: 6px 12px;
 				border-radius: 999px;
 				font-size: 12px;
+				
 			}
+			.input-group select{
+			    background:#0f172a;
+			    border:1px solid #334155;
+			    color:#fff;
+			    padding:10px;
+			    border-radius:8px;
+			    outline:none;
+			}
+			
+			.input-group select:focus{
+			    border-color:#22c55e;
+			    box-shadow:0 0 0 2px #22c55e33;
+			}
+			
 		</style>
 	</head>
 	<body>
@@ -329,6 +344,13 @@
 					<div class="input-group">
 						<label>R$/L</label>
 						<input type="number" step="0.01" id="valor">
+					</div>
+					<div class="input-group">
+					    <label>Combustível</label>
+					    <select id="tipoCombustivel">
+					        <option value="comum">🟡 Gasolina Comum</option>
+					        <option value="aditivada">🟢 Gasolina Aditivada</option>
+					    </select>
 					</div>
 				</div>
 
@@ -407,8 +429,9 @@
 						<small>L</small>
 					</div>
 					<div class="kpi destaque">
-						<span>Próx abastecimento</span>
-						<strong id="previsao">-</strong>
+					    <span>Próxima aditivada</span>
+					    <strong id="cardAditivada">-</strong>
+					    <small id="textoAditivada"></small>
 					</div>
 				</div>
 
@@ -427,14 +450,15 @@
 				<table class="table modern">
 					<thead>
 						<tr>
-							<th>Data</th>
-							<th>Km</th>
-							<th>Km rodados</th>
-							<th>Dias</th>
-							<th>Litros</th>
-							<th>Km/L</th>
-							<th>R$/Km</th>
-							<th>Ações</th>
+						    <th>Data</th>
+						    <th>Km</th>
+						    <th>Km rodados</th>
+						    <th>Dias</th>
+						    <th>Litros</th>
+						    <th>Combustível</th>
+						    <th>Km/L</th>
+						    <th>R$/Km</th>
+						    <th>Ações</th>
 						</tr>
 					</thead>
 					<tbody id="tabela"></tbody>
@@ -532,7 +556,7 @@
 				kmEl.value = item.km;
 				litrosEl.value = item.litros;
 				valorEl.value = item.valor;
-
+				document.getElementById("tipoCombustivel").value = item.tipoCombustivel || "comum";
 				document.getElementById("completo").checked = item.completo;
 
 				editandoIndex = index;
@@ -559,6 +583,7 @@
 			  const litros = parseFloat(litrosEl.value);
 			  const valor = parseFloat(valorEl.value);
 			  const completo = document.getElementById("completo").checked;
+			  const tipoCombustivel = document.getElementById("tipoCombustivel").value;
 			
 			  if (!km || !litros || !valor) return alert("Preencha tudo!");
 			
@@ -642,7 +667,7 @@
 
 				km, litros, valor,
 				kmRodado, consumo, custoKm,
-				dias,
+				dias, tipoCombustivel,
 				completo 
 				};
 				if (editandoIndex !== null) {
@@ -790,6 +815,7 @@
 				let historicoOrdenado = [...historico].sort(
 				  (a, b) => new Date(a.dataISO) - new Date(b.dataISO)
 				);
+				let completosDesdeAditivada = 0;
 				let totalKm = 0, totalLitros = 0;
 				let consumos = [];
 				let gastoMes = 0;
@@ -846,6 +872,13 @@
 						<td>${item.kmRodado || "-"}</td>
 						<td>${dias !== "-" ? dias + "d" : "-"}</td>
 						<td>${item.litros}</td>
+						<td>
+						    ${
+						        item.tipoCombustivel=="aditivada"
+						        ? "🟢 Aditivada"
+						        : "🟡 Comum"
+						    }
+						</td>
 						<td class="td-consumo">${item.consumo ? item.consumo.toFixed(2) : "-"}</td>
 						<td class="td-custo">${item.custoKm ? item.custoKm.toFixed(2) : "-"}</td>
 						<td>
@@ -877,7 +910,40 @@
 					}
 				}
 			  });
-			
+				for(let i=historicoOrdenado.length-1;i>=0;i--){
+				
+				    const item = historicoOrdenado[i];
+				
+				    if(!item.completo) continue;
+				
+				    if(item.tipoCombustivel==="aditivada"){
+				        break;
+				    }
+				
+				    completosDesdeAditivada++;
+				}
+				
+				const RESTAM = Math.max(0,4-completosDesdeAditivada);
+				
+				const card=document.getElementById("cardAditivada");
+				const texto=document.getElementById("textoAditivada");
+				
+				if(RESTAM===0){
+				
+				    card.innerText="⛽ AGORA";
+				    card.style.color="#ef4444";
+				
+				    texto.innerText=
+				    "No próximo abastecimento completo utilize gasolina aditivada.";
+				
+				}else{
+				
+				    card.innerText=RESTAM+" tanque(s)";
+				    card.style.color="#22c55e";
+				
+				    texto.innerText=
+				    "Depois utilize 1 tanque completo de gasolina aditivada.";
+				}
 				let media = totalLitros > 0 ? (totalKm / totalLitros) : 0;
 				if (!isFinite(media)) media = 0;
 
