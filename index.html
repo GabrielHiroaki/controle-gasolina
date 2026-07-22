@@ -2,6 +2,7 @@
 <html lang="pt-BR">
 	<head>
 		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<title>Consumo Honda City</title>
 		<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 		<style>
@@ -18,7 +19,8 @@
 			}
 			.card {
 				background: rgba(30, 41, 59, 0.6);
-				/* backdrop-filter: blur(10px); */
+				backdrop-filter: blur(10px);
+				-webkit-backdrop-filter: blur(10px);
 				border: 1px solid #334155;
 				padding: 20px;
 				border-radius: 16px;
@@ -313,10 +315,127 @@
 			    border-color:#22c55e;
 			    box-shadow:0 0 0 2px #22c55e33;
 			}
+
+			/* --- estado vazio --- */
+			.empty-state {
+				text-align: center;
+				padding: 40px 20px;
+				color: #94a3b8;
+			}
+			.empty-state .icone {
+				font-size: 40px;
+				margin-bottom: 10px;
+			}
+			.empty-state p {
+				margin: 4px 0;
+			}
+
+			/* --- loading --- */
+			#loadingOverlay {
+				position: fixed;
+				inset: 0;
+				background: #020617;
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				justify-content: center;
+				gap: 15px;
+				z-index: 9999;
+				transition: opacity 0.3s ease;
+			}
+			.spinner {
+				width: 42px;
+				height: 42px;
+				border: 4px solid #334155;
+				border-top-color: #22c55e;
+				border-radius: 50%;
+				animation: girar 0.8s linear infinite;
+			}
+			@keyframes girar {
+				to { transform: rotate(360deg); }
+			}
+			#loadingOverlay span {
+				color: #94a3b8;
+				font-size: 14px;
+			}
+
+			/* --- toast / modal custom (substitui alert/confirm) --- */
+			#toastContainer {
+				position: fixed;
+				top: 16px;
+				left: 50%;
+				transform: translateX(-50%);
+				display: flex;
+				flex-direction: column;
+				gap: 10px;
+				z-index: 10000;
+				width: 90%;
+				max-width: 420px;
+			}
+			.toast {
+				background: #0f172a;
+				border: 1px solid #334155;
+				border-left: 4px solid #22c55e;
+				color: #fff;
+				padding: 12px 16px;
+				border-radius: 10px;
+				box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+				font-size: 14px;
+				animation: entrarToast 0.25s ease;
+			}
+			.toast.erro { border-left-color: #ef4444; }
+			@keyframes entrarToast {
+				from { opacity: 0; transform: translateY(-10px); }
+				to { opacity: 1; transform: translateY(0); }
+			}
+
+			.modal-backdrop {
+				position: fixed;
+				inset: 0;
+				background: rgba(2,6,23,0.7);
+				backdrop-filter: blur(4px);
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				z-index: 10000;
+			}
+			.modal-box {
+				background: #0f172a;
+				border: 1px solid #334155;
+				border-radius: 14px;
+				padding: 24px;
+				width: 90%;
+				max-width: 360px;
+				text-align: center;
+				box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+			}
+			.modal-box p {
+				margin: 0 0 20px 0;
+				font-size: 15px;
+			}
+			.modal-acoes {
+				display: flex;
+				gap: 10px;
+				justify-content: center;
+			}
+			.modal-acoes button {
+				flex: 1;
+			}
+			.btn-cancelar {
+				background: #1e293b;
+				color: #fff;
+				border: 1px solid #334155;
+			}
 			
 		</style>
 	</head>
 	<body>
+		<div id="loadingOverlay">
+			<div class="spinner"></div>
+			<span>Carregando dados...</span>
+		</div>
+		<div id="toastContainer"></div>
+
 		<div class="container">
 			<div class="header">
 				<h1>🚗 Consumo City</h1>
@@ -362,7 +481,7 @@
 					</label>
 
 					<div class="acoes">
-						<button onclick="adicionar()">Adicionar</button>
+						<button id="btnAdicionar" onclick="adicionar()">Adicionar</button>
 						<button class="reset" onclick="resetar()">Resetar</button>
 					</div>
 				</div>
@@ -452,28 +571,35 @@
 			</div>
 			<div class="card">
 				<h3>Histórico</h3>
-				<table class="table modern">
-					<thead>
-						<tr>
-						    <th>Data</th>
-						    <th>Km</th>
-						    <th>Km rodados</th>
-						    <th>Dias</th>
-						    <th>Litros</th>
-						    <th>Combustível</th>
-						    <th>Km/L</th>
-						    <th>R$/Km</th>
-						    <th>Ações</th>
-						</tr>
-					</thead>
-					<tbody id="tabela"></tbody>
-				</table>
+				<div id="tabelaWrapper">
+					<table class="table modern">
+						<thead>
+							<tr>
+							    <th>Data</th>
+							    <th>Km</th>
+							    <th>Km rodados</th>
+							    <th>Dias</th>
+							    <th>Litros</th>
+							    <th>Combustível</th>
+							    <th>Km/L</th>
+							    <th>R$/Km</th>
+							    <th>Ações</th>
+							</tr>
+						</thead>
+						<tbody id="tabela"></tbody>
+					</table>
+				</div>
+				<div id="emptyState" class="empty-state" style="display:none;">
+					<div class="icone">⛽</div>
+					<p><strong>Nenhum abastecimento neste período</strong></p>
+					<p>Adicione um registro acima para começar a acompanhar seu consumo.</p>
+				</div>
 			</div>
 		</div>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 		<script type="module">
 			import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-			import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+			import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 			import { query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 			import { onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -500,7 +626,49 @@
 			let historico = [];
 			let tanqueAtual = parseFloat(localStorage.getItem("tanqueAtual")) || 0;
 			let chart;
-			let editandoIndex = null;
+			let editandoId = null; // guarda o ID do documento, não mais o índice (evita editar o registro errado)
+			let primeiraCarga = true;
+
+			// ---------- Toast (substitui alert) ----------
+			function toast(msg, tipo = "ok") {
+				const container = document.getElementById("toastContainer");
+				const el = document.createElement("div");
+				el.className = "toast" + (tipo === "erro" ? " erro" : "");
+				el.innerText = msg;
+				container.appendChild(el);
+				setTimeout(() => {
+					el.style.opacity = "0";
+					el.style.transition = "opacity 0.3s";
+					setTimeout(() => el.remove(), 300);
+				}, 3000);
+			}
+
+			// ---------- Modal de confirmação (substitui confirm) ----------
+			function confirmarAcao(mensagem) {
+				return new Promise((resolve) => {
+					const backdrop = document.createElement("div");
+					backdrop.className = "modal-backdrop";
+					backdrop.innerHTML = `
+						<div class="modal-box">
+							<p>${mensagem}</p>
+							<div class="modal-acoes">
+								<button class="btn-cancelar" id="modalCancelar">Cancelar</button>
+								<button class="reset" id="modalConfirmar">Confirmar</button>
+							</div>
+						</div>
+					`;
+					document.body.appendChild(backdrop);
+
+					backdrop.querySelector("#modalCancelar").onclick = () => {
+						backdrop.remove();
+						resolve(false);
+					};
+					backdrop.querySelector("#modalConfirmar").onclick = () => {
+						backdrop.remove();
+						resolve(true);
+					};
+				});
+			}
 			
 			function parseDataLocal(valor) {
 			  if (!valor) return new Date();
@@ -522,27 +690,42 @@
 			    recalcularHistorico();
 			    recalcularTanque();
 			    atualizar();
+
+			    if (primeiraCarga) {
+			      primeiraCarga = false;
+			      const overlay = document.getElementById("loadingOverlay");
+			      overlay.style.opacity = "0";
+			      setTimeout(() => overlay.remove(), 300);
+			    }
+			  }, (erro) => {
+			    console.error(erro);
+			    toast("Erro ao carregar dados do Firebase.", "erro");
 			  });
 			}
 			async function resetar() {
-			if (confirm("Apagar tudo?")) {
+				const ok = await confirmarAcao("Apagar todos os registros? Essa ação não pode ser desfeita.");
+				if (!ok) return;
+
 				const snapshot = await getDocs(collection(db, "abastecimentos"));
 
 				const promises = [];
 				snapshot.forEach((docItem) => {
-				promises.push(deleteDoc(doc(db, "abastecimentos", docItem.id)));
+					promises.push(deleteDoc(doc(db, "abastecimentos", docItem.id)));
 				});
 
 				await Promise.all(promises);
 
 				historico = [];
 				tanqueAtual = 0;
+				localStorage.setItem("tanqueAtual", 0);
 
 				atualizar();
-			}
+				toast("Todos os registros foram apagados.");
 			}
 			async function excluir(index) {
-			if (confirm("Excluir registro?")) {
+				const ok = await confirmarAcao("Excluir este registro?");
+				if (!ok) return;
+
 				const id = historico[index].id;
 
 				await deleteDoc(doc(db, "abastecimentos", id));
@@ -552,7 +735,7 @@
 				recalcularHistorico();
 				recalcularTanque();
 				atualizar();
-			}
+				toast("Registro excluído.");
 			}
 			function editar(index) {
 				const item = historico[index];
@@ -564,7 +747,11 @@
 				document.getElementById("tipoCombustivel").value = item.tipoCombustivel || "comum";
 				document.getElementById("completo").checked = item.completo;
 
-				editandoIndex = index;
+				editandoId = item.id;
+
+				const btn = document.getElementById("btnAdicionar");
+				btn.innerText = "Salvar edição";
+				document.querySelector(".card").scrollIntoView({ behavior: "smooth" });
 			}
 			function recalcularTanque() {
 			  let tanque = 0;
@@ -590,33 +777,45 @@
 			  const completo = document.getElementById("completo").checked;
 			  const tipoCombustivel = document.getElementById("tipoCombustivel").value;
 			
-			  if (!km || !litros || !valor) return alert("Preencha tudo!");
+			  if (!km || !litros || !valor) {
+			    toast("Preencha todos os campos!", "erro");
+			    return;
+			  }
 			
 			  const hoje = parseDataLocal(dataEl.value);
-			  let kmRodado = 0, consumo = null, custoKm = null, dias = null;
+			  let kmRodado = 0, dias = null;
+
+			  // acha o índice do registro em edição (se houver) pela lista já ordenada
+			  const historicoOrdenadoTmp = [...historico].sort((a, b) => new Date(a.dataISO) - new Date(b.dataISO));
+			  const editandoIndexAtual = editandoId
+			    ? historicoOrdenadoTmp.findIndex(h => h.id === editandoId)
+			    : null;
 			
 			  if (historico.length > 0) {
-				historico.sort((a, b) => new Date(a.dataISO) - new Date(b.dataISO));
-				let ultimo = historico.at(-1);
+				let ultimo = historicoOrdenadoTmp.at(-1);
 
-				if (editandoIndex !== null) {
-					const anterior = historico[editandoIndex - 1];
-					const proximo = historico[editandoIndex + 1];
+				if (editandoIndexAtual !== null && editandoIndexAtual !== -1) {
+					const anterior = historicoOrdenadoTmp[editandoIndexAtual - 1];
+					const proximo = historicoOrdenadoTmp[editandoIndexAtual + 1];
 
 					if (anterior && hoje <= new Date(anterior.dataISO)) {
-						return alert("Data menor ou igual ao anterior!");
+						toast("Data menor ou igual ao anterior!", "erro");
+						return;
 					}
 
 					if (proximo && hoje >= new Date(proximo.dataISO)) {
-						return alert("Data maior ou igual ao próximo!");
+						toast("Data maior ou igual ao próximo!", "erro");
+						return;
 					}
 
 					if (anterior && km <= anterior.km) {
-						return alert("KM menor que o anterior!");
+						toast("KM menor que o anterior!", "erro");
+						return;
 					}
 
 					if (proximo && km >= proximo.km) {
-						return alert("KM maior que o próximo!");
+						toast("KM maior que o próximo!", "erro");
+						return;
 					}
 
 					if (anterior) {
@@ -629,39 +828,20 @@
 
 				} else {
 					if (ultimo && hoje <= new Date(ultimo.dataISO)) {
-						return alert("Data deve ser maior que o último registro!");
+						toast("Data deve ser maior que o último registro!", "erro");
+						return;
 					}
 					if (ultimo && km <= ultimo.km) {
-						return alert("KM inválido");
+						toast("KM inválido", "erro");
+						return;
 					}
 					if (ultimo) {
 						dias = Math.max(1, Math.round((hoje - new Date(ultimo.dataISO)) / (1000*60*60*24)));
 						kmRodado = km - ultimo.km;
 					}
 				}
-			
-				// calcular consumo se tanque cheio
-				if (completo && kmRodado > 0 && litros > 0) {
-				consumo = kmRodado / litros;
-				custoKm = (litros * valor) / kmRodado;
-				} else {
-				consumo = null;
-				custoKm = null;
-				}
-			
-				// 🔥 calcular média REAL pelo histórico
-				let totalKm = 0;
-				let totalLitros = 0;
-			
-				historico.forEach(item => {
-				  if (item.consumo) {
-					totalKm += item.kmRodado;
-					totalLitros += item.litros;
-				  }
-				});
-			
-				let mediaReal = totalLitros > 0 ? (totalKm / totalLitros) : 0;
 			  }
+
 			  	const dataObj = new Date(hoje);
 				const novoRegistro = {
 				data: hoje.toLocaleDateString(),
@@ -671,19 +851,20 @@
 				ano: dataObj.getFullYear(),
 
 				km, litros, valor,
-				kmRodado, consumo, custoKm,
+				kmRodado,
 				dias, tipoCombustivel,
 				completo 
 				};
-				if (editandoIndex !== null) {
-				const id = historico[editandoIndex].id;
 
-				await updateDoc(doc(db, "abastecimentos", id), novoRegistro);
-
-				editandoIndex = null;
+				if (editandoId !== null) {
+					await updateDoc(doc(db, "abastecimentos", editandoId), novoRegistro);
+					editandoId = null;
+					document.getElementById("btnAdicionar").innerText = "Adicionar";
+					toast("Registro atualizado!");
 				} else {
-				const docRef = await addDoc(collection(db, "abastecimentos"), novoRegistro);
-				novoRegistro.id = docRef.id;
+					const docRef = await addDoc(collection(db, "abastecimentos"), novoRegistro);
+					novoRegistro.id = docRef.id;
+					toast("Abastecimento adicionado!");
 				}
 
 				recalcularHistorico();
@@ -703,6 +884,8 @@
 			const statusEl = document.getElementById("status");
 			const alertaEl = document.getElementById("alerta");
 			const tabela = document.getElementById("tabela");
+			const tabelaWrapper = document.getElementById("tabelaWrapper");
+			const emptyState = document.getElementById("emptyState");
 			const grafico = document.getElementById("grafico");
 			const litrosEl = document.getElementById("litros");
 			const valorEl = document.getElementById("valor");
@@ -823,11 +1006,13 @@
 				let completosDesdeAditivada = 0;
 				let totalKm = 0, totalLitros = 0;
 				let consumos = [];
+				let coresConsumos = [];
 				let gastoMes = 0;
 				let totalDias = 0, totalKmDia = 0;
 				let litrosMes = 0;
 				let gastoValido = 0;
 				let diasValidos = 0;
+				let itensNoPeriodo = 0;
 			
 				const mesAtual = parseInt(mesFiltroEl.value);
 				const anoAtual = parseInt(anoFiltroEl.value);
@@ -870,6 +1055,7 @@
 				}
 				// TUDO filtrado por mês
 				if (mesItem === mesAtual && anoItem === anoAtual) {
+					itensNoPeriodo++;
 					tabela.innerHTML += `
 					<tr>
 						<td>${item.data}</td>
@@ -906,6 +1092,7 @@
 					    totalLitros += item.litrosCalculados || 0;
 					
 					    consumos.push(item.consumo);
+					    coresConsumos.push(item.tipoCombustivel === "aditivada" ? "#22c55e" : "#38bdf8");
 					}
 
 					// km/dia
@@ -915,6 +1102,16 @@
 					}
 				}
 			  });
+
+				// estado vazio: mostra mensagem quando não há registros no período filtrado
+				if (itensNoPeriodo === 0) {
+					tabelaWrapper.style.display = "none";
+					emptyState.style.display = "block";
+				} else {
+					tabelaWrapper.style.display = "block";
+					emptyState.style.display = "none";
+				}
+
 				for(let i=historicoOrdenado.length-1;i>=0;i--){
 				
 				    const item = historicoOrdenado[i];
@@ -1007,7 +1204,7 @@
 				}
 			
 			  gerarStatus(media, consumos);
-			  gerarGrafico(consumos);
+			  gerarGrafico(consumos, coresConsumos);
 			}
 			
 			function gerarStatus(media, consumos) {
@@ -1030,7 +1227,7 @@
 			  }
 			}
 			
-			function gerarGrafico(consumos) {
+			function gerarGrafico(consumos, coresConsumos = []) {
 			if (chart) chart.destroy();
 
 			const ctx = grafico.getContext("2d");
@@ -1058,8 +1255,12 @@
 					backgroundColor: gradient,
 					borderColor: "#22c55e",
 					borderWidth: 2,
-					pointRadius: 4,
-					pointHoverRadius: 6
+					pointRadius: 5,
+					pointHoverRadius: 7,
+					// pontos coloridos: verde = aditivada, azul = comum
+					pointBackgroundColor: coresConsumos.length ? coresConsumos : "#22c55e",
+					pointBorderColor: "#0f172a",
+					pointBorderWidth: 1.5
 					},
 					{
 					label: "Média",
@@ -1085,7 +1286,8 @@
 					borderWidth: 1,
 					titleColor: "#22c55e",
 					bodyColor: "#fff",
-					padding: 10
+					padding: 10,
+					displayColors: false
 					}
 				},
 				scales: {
@@ -1103,23 +1305,18 @@
 				interaction: {
 					mode: 'index',
 					intersect: false
-				},
-				plugins: {
-					tooltip: {
-						displayColors: false
-					}
 				}
 				}
 			});
 			}
 			async function gerarPDFAnual() {
 				if (!historico.length) {
-					alert("Sem dados para gerar relatório!");
+					toast("Sem dados para gerar relatório!", "erro");
 					return;
 				}
 
 				if (!window.jspdf) {
-					alert("Erro ao carregar biblioteca PDF!");
+					toast("Erro ao carregar biblioteca PDF!", "erro");
 					return;
 				}
 
@@ -1370,6 +1567,7 @@
 				doc.text(new Date().toLocaleString(), 200, 290, { align: "right" });
 
 				doc.save(`relatorio_${anoSelecionado}.pdf`);
+				toast("PDF gerado com sucesso!");
 			}
 
 			window.gerarPDFAnual = gerarPDFAnual;
