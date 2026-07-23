@@ -1162,11 +1162,13 @@
 					emptyState.style.display = "none";
 				}
 
+				// conta tanques completos (comuns) desde o último abastecimento com aditivada.
+				// qualquer abastecimento com aditivada reinicia a contagem, mesmo que não tenha
+				// enchido o tanque — o que importa é que aditivada entrou no tanque.
 				for (let i = historicoOrdenado.length - 1; i >= 0; i--) {
 					const item = historicoOrdenado[i];
-					if (!item.completo) continue;
 					if (item.tipoCombustivel === "aditivada") break;
-					completosDesdeAditivada++;
+					if (item.completo) completosDesdeAditivada++;
 				}
 
 				const RESTAM = Math.max(0, 4 - completosDesdeAditivada);
