@@ -3,473 +3,622 @@
 	<head>
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<title>Consumo Honda City</title>
+		<title>Consumo · Honda City</title>
 		<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 		<style>
+			:root {
+				--bg: #0b0d11;
+				--bg-panel: #14171e;
+				--bg-panel-2: #1a1e26;
+				--line: #262b35;
+				--line-soft: #1c212a;
+				--text: #eef0f3;
+				--text-dim: #838a99;
+				--text-faint: #545b69;
+				--teal: #2dd4bf;
+				--teal-dim: #2dd4bf22;
+				--amber: #f5a623;
+				--amber-dim: #f5a62322;
+				--red: #ff5c5c;
+				--red-dim: #ff5c5c22;
+				--radius: 14px;
+			}
+
+			* { box-sizing: border-box; }
+
 			body {
-				font-family: Arial;
-				background: radial-gradient(circle at top, #1e293b, #020617);
-				color: #fff;
-				padding: 20px;
+				font-family: 'Inter', Arial, sans-serif;
+				background:
+					radial-gradient(ellipse 900px 500px at 50% -10%, #1a2028 0%, transparent 60%),
+					var(--bg);
+				color: var(--text);
+				margin: 0;
+				padding: 0 0 60px 0;
+				-webkit-font-smoothing: antialiased;
 			}
-			h1 { text-align: center; }
+
+			.display {
+				font-family: 'Rajdhani', sans-serif;
+				font-weight: 700;
+				letter-spacing: 0.02em;
+			}
+
+			.mono {
+				font-family: 'Space Mono', monospace;
+			}
+
 			.container {
-			max-width: 1000px;
-			margin: auto;
-			}
-			.card {
-				background: rgba(30, 41, 59, 0.6);
-				backdrop-filter: blur(10px);
-				-webkit-backdrop-filter: blur(10px);
-				border: 1px solid #334155;
-				padding: 20px;
-				border-radius: 16px;
-				margin-bottom: 20px;
-				box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-			}
-			input, button {
-			padding: 10px;
-			margin: 5px;
-			border-radius: 8px;
-			border: none;
-			}
-			input { width: 150px; }
-			button {
-				background: linear-gradient(135deg, #22c55e, #16a34a);
-				color: #000;
-				font-weight: bold;
-				box-shadow: 0 4px 10px rgba(34,197,94,0.3);
-			}
-			
-			button:hover {
-				transform: translateY(-2px);
-				box-shadow: 0 6px 15px rgba(34,197,94,0.5);
-			}
-			.reset {
-			background: #ef4444;
-			color: #fff;
-			}
-			.table {
-			    width: 100%;
-			    border-collapse: collapse;
-			    display: table;
-			}
-			.table th, .table td {
-			padding: 10px;
-			border-bottom: 1px solid #334155;
-			text-align: center;
-			}
-			.highlight { color: #22c55e; font-weight: bold; }
-			.alert { color: #f87171; font-weight: bold; }
-			.status { font-size: 20px; font-weight: bold; }
-			.grid {
-				display: grid;
-				grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-				gap: 15px;
-				margin-top: 15px;
+				max-width: 980px;
+				margin: auto;
+				padding: 0 20px;
 			}
 
-			.kpi {
-				background: linear-gradient(135deg, #1e293b, #0f172a);
-				padding: 18px;
-				border-radius: 14px;
-				text-align: center;
-				border: 1px solid #334155;
-				transition: 0.3s;
-				position: relative;
-				overflow: hidden;
+			/* ---------- topo: régua estilo painel ---------- */
+			.dash-header {
+				background: linear-gradient(180deg, #12151b 0%, #0b0d11 100%);
+				border-bottom: 1px solid var(--line);
+				padding: 22px 20px 18px 20px;
+				margin-bottom: 28px;
 			}
-			
-			.kpi::after {
-				content: "";
-				position: absolute;
-				width: 100%;
-				height: 100%;
-				top: 0;
-				left: 0;
-				background: radial-gradient(circle at top, #22c55e22, transparent);
-				opacity: 0;
-				transition: 0.3s;
+			.dash-header-inner {
+				max-width: 980px;
+				margin: auto;
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
 			}
-			
-			.kpi:hover::after {
-				opacity: 1;
+			.brand {
+				display: flex;
+				align-items: baseline;
+				gap: 10px;
 			}
-
-			.kpi:hover {
-				transform: translateY(-3px);
-				border-color: #22c55e;
-			}
-
-			.kpi span {
-				font-size: 12px;
-				color: #94a3b8;
-				display: block;
-				margin-bottom: 5px;
-			}
-
-			.kpi strong {
+			.brand-mark {
+				font-family: 'Rajdhani', sans-serif;
+				font-weight: 700;
 				font-size: 22px;
-				color: #22c55e;
+				letter-spacing: 0.04em;
+				text-transform: uppercase;
+			}
+			.brand-mark span { color: var(--teal); }
+			.brand-sub {
+				font-size: 11px;
+				color: var(--text-faint);
+				text-transform: uppercase;
+				letter-spacing: 0.12em;
+			}
+			.telltale {
+				display: flex;
+				align-items: center;
+				gap: 7px;
+				font-size: 11px;
+				text-transform: uppercase;
+				letter-spacing: 0.08em;
+				color: var(--teal);
+				background: var(--teal-dim);
+				border: 1px solid #2dd4bf3d;
+				padding: 6px 12px;
+				border-radius: 999px;
+			}
+			.telltale i {
+				width: 6px; height: 6px;
+				border-radius: 50%;
+				background: var(--teal);
+				box-shadow: 0 0 8px 1px var(--teal);
+				display: inline-block;
 			}
 
-			.kpi small {
-				font-size: 12px;
-				color: #64748b;
+			/* ---------- cards genéricos ---------- */
+			.card {
+				background: linear-gradient(180deg, var(--bg-panel) 0%, var(--bg-panel-2) 100%);
+				border: 1px solid var(--line);
+				border-radius: var(--radius);
+				padding: 22px;
+				margin-bottom: 20px;
+			}
+			.card-title {
+				font-family: 'Rajdhani', sans-serif;
+				font-weight: 700;
+				font-size: 15px;
+				text-transform: uppercase;
+				letter-spacing: 0.08em;
+				color: var(--text-dim);
+				margin: 0 0 16px 0;
+				display: flex;
+				align-items: center;
+				gap: 8px;
+			}
+			.card-title .dot {
+				width: 7px; height: 7px;
+				border-radius: 2px;
+				background: var(--amber);
+				display: inline-block;
+				transform: rotate(45deg);
 			}
 
-			.kpi.destaque {
-				background: linear-gradient(135deg, #22c55e22, #22c55e05);
-				border: 1px solid #22c55e;
-				box-shadow: 0 0 15px rgba(34,197,94,0.3);
-			}
-
-			.extra {
-				margin-top: 15px;
-				text-align: center;
+			/* ---------- formulário: ficha de abastecimento ---------- */
+			.ticket {
+				position: relative;
 			}
 			.form-grid {
 				display: grid;
-				grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-				gap: 15px;
-				margin-top: 15px;
+				grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+				gap: 14px;
 			}
-
-			.input-group {
-				display: flex;
-				flex-direction: column;
-			}
-
+			.input-group { display: flex; flex-direction: column; }
 			.input-group label {
-				font-size: 12px;
-				color: #94a3b8;
-				margin-bottom: 5px;
+				font-size: 10px;
+				color: var(--text-faint);
+				text-transform: uppercase;
+				letter-spacing: 0.1em;
+				margin-bottom: 7px;
 			}
-
-			.input-group input {
-				background: #0f172a;
-				border: 1px solid #334155;
-				color: #fff;
-				padding: 10px;
+			.input-group input, .input-group select {
+				background: #0d0f14;
+				border: 1px solid var(--line);
+				color: var(--text);
+				padding: 11px 12px;
 				border-radius: 8px;
 				outline: none;
-				transition: 0.2s;
+				font-family: 'Space Mono', monospace;
+				font-size: 14px;
+				transition: border-color 0.15s, box-shadow 0.15s;
+			}
+			.input-group select { font-family: 'Inter', sans-serif; }
+			.input-group input:focus, .input-group select:focus {
+				border-color: var(--teal);
+				box-shadow: 0 0 0 3px var(--teal-dim);
 			}
 
-			.input-group input:focus {
-				border-color: #22c55e;
-				box-shadow: 0 0 0 2px #22c55e33;
-			}
-
-			/* footer */
 			.form-footer {
 				display: flex;
 				justify-content: space-between;
 				align-items: center;
-				margin-top: 15px;
+				margin-top: 18px;
 				flex-wrap: wrap;
-				gap: 10px;
+				gap: 12px;
+				padding-top: 16px;
+				border-top: 1px dashed var(--line);
 			}
-
-			/* checkbox bonito */
 			.check {
 				display: flex;
 				align-items: center;
 				cursor: pointer;
-				gap: 8px;
-				font-size: 14px;
+				gap: 9px;
+				font-size: 13px;
+				color: var(--text-dim);
 			}
-
-			.check input {
-				display: none;
-			}
-
+			.check input { display: none; }
 			.check span {
-				width: 18px;
-				height: 18px;
+				width: 18px; height: 18px;
 				border-radius: 5px;
-				border: 1px solid #334155;
-				background: #0f172a;
+				border: 1px solid var(--line);
+				background: #0d0f14;
 				position: relative;
+				flex-shrink: 0;
 			}
-
-			.check input:checked + span {
-				background: #22c55e;
-				border-color: #22c55e;
-			}
-
+			.check input:checked + span { background: var(--teal); border-color: var(--teal); }
 			.check input:checked + span::after {
 				content: "✓";
-				position: absolute;
-				top: 0;
-				left: 4px;
-				color: #000;
-				font-size: 12px;
+				position: absolute; top: -1px; left: 3px;
+				color: #06110f; font-size: 12px; font-weight: bold;
 			}
 
-			/* botões */
-			.acoes {
-				display: flex;
-				gap: 10px;
-			}
-
+			.acoes { display: flex; gap: 10px; }
 			button {
-				padding: 10px 15px;
+				padding: 11px 18px;
 				border-radius: 8px;
 				border: none;
 				cursor: pointer;
-				font-weight: bold;
-				transition: 0.2s;
-			}
-
-			button:hover {
-				transform: scale(1.05);
-			}
-
-			.reset {
-				background: #ef4444;
-				color: #fff;
-			}
-			.modern {
-				width: 100%;
-				border-collapse: collapse;
-				overflow: hidden;
-				border-radius: 12px;
-			}
-
-			.modern thead {
-				background: #0f172a;
-			}
-
-			.modern th {
-				padding: 12px;
-				font-size: 12px;
-				color: #94a3b8;
-				font-weight: 500;
+				font-family: 'Rajdhani', sans-serif;
+				font-weight: 700;
+				font-size: 13px;
 				text-transform: uppercase;
-				letter-spacing: 0.5px;
+				letter-spacing: 0.06em;
+				transition: transform 0.12s, box-shadow 0.12s, filter 0.12s;
 			}
+			button:hover { transform: translateY(-1px); filter: brightness(1.08); }
+			button:active { transform: translateY(0); }
+			#btnAdicionar {
+				background: var(--teal);
+				color: #06110f;
+				box-shadow: 0 4px 14px var(--teal-dim);
+			}
+			.reset {
+				background: transparent;
+				color: var(--red);
+				border: 1px solid #ff5c5c4d;
+			}
+			.reset:hover { background: var(--red-dim); }
 
-			.modern td {
-				padding: 12px;
+			/* ---------- período ---------- */
+			.periodo-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: stretch; }
+			.periodo-row select, .periodo-row input {
+				background: #0d0f14;
+				border: 1px solid var(--line);
+				color: var(--text);
+				padding: 11px 12px;
+				border-radius: 8px;
+				outline: none;
+				font-family: 'Inter', sans-serif;
 				font-size: 14px;
-				border-top: 1px solid #334155;
+			}
+			.periodo-row select:focus, .periodo-row input:focus {
+				border-color: var(--teal);
+				box-shadow: 0 0 0 3px var(--teal-dim);
+			}
+			.btn-pdf {
+				background: var(--bg-panel-2);
+				color: var(--amber);
+				border: 1px solid #f5a6234d;
+			}
+			.btn-pdf:hover { background: var(--amber-dim); }
+
+			/* ---------- painel resumo: velocímetro + lcd tiles ---------- */
+			.resumo-titulo-row {
+				display: flex;
+				justify-content: space-between;
+				align-items: baseline;
+				margin-bottom: 18px;
+				flex-wrap: wrap;
+				gap: 6px;
+			}
+			.resumo-titulo-row h2 {
+				font-family: 'Rajdhani', sans-serif;
+				font-weight: 700;
+				font-size: 20px;
+				text-transform: uppercase;
+				letter-spacing: 0.05em;
+				margin: 0;
+			}
+			.resumo-titulo-row .periodo-label {
+				color: var(--teal);
+			}
+			.status-line {
+				font-family: 'Space Mono', monospace;
+				font-size: 12px;
+				color: var(--text-faint);
 			}
 
-			.modern tbody tr {
-				transition: 0.2s;
+			.painel {
+				display: grid;
+				grid-template-columns: 220px 1fr;
+				gap: 26px;
+				align-items: center;
+			}
+			@media (max-width: 640px) {
+				.painel { grid-template-columns: 1fr; }
 			}
 
-			.modern tbody tr:hover {
-				background: #0f172a;
-				box-shadow: inset 0 0 0 1px #22c55e33;
+			/* gauge circular - sinal da marca */
+			.gauge-wrap {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				justify-content: center;
+			}
+			.fuel-ring {
+				--fuel-pct: 0;
+				width: 190px;
+				height: 190px;
+				border-radius: 50%;
+				background: conic-gradient(
+					var(--teal) calc(var(--fuel-pct) * 1%),
+					var(--line-soft) 0
+				);
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				position: relative;
+				box-shadow: 0 0 0 1px var(--line), inset 0 0 30px rgba(0,0,0,0.4);
+				transition: background 0.6s ease;
+			}
+			.fuel-ring::before {
+				content: "";
+				position: absolute;
+				width: 156px; height: 156px;
+				border-radius: 50%;
+				background: radial-gradient(circle at 40% 30%, #171b22, #0c0e12 75%);
+				box-shadow: inset 0 0 12px rgba(0,0,0,0.6);
+			}
+			.fuel-ring-inner {
+				position: relative;
+				text-align: center;
+				z-index: 1;
+			}
+			.fuel-ring-inner strong {
+				font-family: 'Rajdhani', sans-serif;
+				font-weight: 700;
+				font-size: 40px;
+				line-height: 1;
+				color: var(--text);
+				display: block;
+			}
+			.fuel-ring-inner small {
+				display: block;
+				font-size: 10px;
+				color: var(--text-faint);
+				text-transform: uppercase;
+				letter-spacing: 0.1em;
+				margin-top: 6px;
+			}
+			.gauge-caption {
+				margin-top: 12px;
+				font-size: 11px;
+				color: var(--text-faint);
+				text-transform: uppercase;
+				letter-spacing: 0.08em;
 			}
 
-			/* zebra leve */
-			.modern tbody tr:nth-child(even) {
-				background: #1a2436;
+			/* tiles LCD estilo computador de bordo */
+			.lcd-grid {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+				gap: 12px;
 			}
+			.lcd {
+				background: #0d0f14;
+				border: 1px solid var(--line-soft);
+				border-radius: 10px;
+				padding: 14px 14px;
+				position: relative;
+				overflow: hidden;
+			}
+			.lcd span {
+				display: block;
+				font-size: 10px;
+				color: var(--text-faint);
+				text-transform: uppercase;
+				letter-spacing: 0.08em;
+				margin-bottom: 6px;
+			}
+			.lcd strong {
+				font-family: 'Space Mono', monospace;
+				font-size: 19px;
+				color: var(--teal);
+				font-weight: 700;
+				display: block;
+				line-height: 1.15;
+			}
+			.lcd strong.wrap-text { font-size: 15px; }
+			.lcd small {
+				font-size: 10px;
+				color: var(--text-faint);
+			}
+			.lcd.destaque {
+				border-color: #f5a62355;
+				background: linear-gradient(180deg, #1a160c 0%, #0d0f14 100%);
+			}
+			.lcd.destaque strong { color: var(--amber); }
 
-			/* destaque números */
-			.td-km {
-				color: #22c55e;
-				font-weight: bold;
-			}
-
-			.td-consumo {
-				color: #38bdf8;
-			}
-
-			.td-custo {
-				color: #facc15;
-			}
-			.header {
+			.extra-row {
 				display: flex;
 				justify-content: space-between;
 				align-items: center;
-				margin-bottom: 20px;
+				margin-top: 20px;
+				padding-top: 16px;
+				border-top: 1px solid var(--line-soft);
+				flex-wrap: wrap;
+				gap: 10px;
 			}
-			
-			.header h1 {
-				font-size: 24px;
+			.melhor-pior {
+				font-size: 13px;
+				color: var(--text-dim);
+				font-family: 'Space Mono', monospace;
 			}
-			
-			.badge {
-				background: #22c55e22;
-				color: #22c55e;
-				padding: 6px 12px;
-				border-radius: 999px;
-				font-size: 12px;
-				
+			.melhor-pior b.g { color: var(--teal); }
+			.melhor-pior b.r { color: var(--red); }
+			.status-badge {
+				font-family: 'Rajdhani', sans-serif;
+				font-weight: 700;
+				font-size: 15px;
+				letter-spacing: 0.04em;
 			}
-			.input-group select{
-			    background:#0f172a;
-			    border:1px solid #334155;
-			    color:#fff;
-			    padding:10px;
-			    border-radius:8px;
-			    outline:none;
-			}
-			
-			.input-group select:focus{
-			    border-color:#22c55e;
-			    box-shadow:0 0 0 2px #22c55e33;
-			}
+			.alert { color: var(--red); font-weight: 600; font-size: 13px; }
 
-			/* --- estado vazio --- */
+			/* ---------- gráfico ---------- */
+			canvas { max-width: 100%; }
+
+			/* ---------- tabela: ficha de manutenção ---------- */
+			.table-scroll { overflow-x: auto; }
+			.modern {
+				width: 100%;
+				border-collapse: collapse;
+				min-width: 640px;
+			}
+			.modern thead th {
+				padding: 10px 12px;
+				font-size: 10px;
+				color: var(--text-faint);
+				font-weight: 600;
+				text-transform: uppercase;
+				letter-spacing: 0.08em;
+				text-align: left;
+				border-bottom: 1px solid var(--line);
+			}
+			.modern td {
+				padding: 12px;
+				font-size: 13px;
+				font-family: 'Space Mono', monospace;
+				border-bottom: 1px solid var(--line-soft);
+				color: var(--text-dim);
+			}
+			.modern tbody tr { transition: background 0.15s; }
+			.modern tbody tr:hover { background: #12151b; }
+			.td-km { color: var(--text); font-weight: 700; }
+			.td-consumo { color: var(--teal); }
+			.td-custo { color: var(--amber); }
+			.fuel-chip {
+				display: inline-flex;
+				align-items: center;
+				gap: 6px;
+				font-family: 'Inter', sans-serif;
+				font-size: 12px;
+			}
+			.fuel-chip i {
+				width: 8px; height: 8px;
+				border-radius: 50%;
+				display: inline-block;
+			}
+			.fuel-chip.comum i { background: #5b9bd5; }
+			.fuel-chip.aditivada i { background: var(--teal); }
+			.modern .acoes-cell { display: flex; gap: 6px; }
+			.icon-btn {
+				background: transparent;
+				border: 1px solid var(--line);
+				color: var(--text-dim);
+				padding: 6px 9px;
+				font-size: 12px;
+			}
+			.icon-btn:hover { border-color: var(--teal); color: var(--teal); background: transparent; }
+
+			/* ---------- estado vazio ---------- */
 			.empty-state {
 				text-align: center;
-				padding: 40px 20px;
-				color: #94a3b8;
+				padding: 50px 20px;
+				color: var(--text-faint);
 			}
 			.empty-state .icone {
-				font-size: 40px;
-				margin-bottom: 10px;
+				width: 46px; height: 46px;
+				margin: 0 auto 14px auto;
+				border-radius: 50%;
+				border: 1px solid var(--line);
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				font-size: 18px;
+				color: var(--teal);
 			}
-			.empty-state p {
-				margin: 4px 0;
-			}
+			.empty-state p { margin: 4px 0; }
+			.empty-state p strong { color: var(--text-dim); font-family: 'Rajdhani', sans-serif; text-transform: uppercase; letter-spacing: 0.04em; }
 
-			/* --- loading --- */
+			/* ---------- loading ---------- */
 			#loadingOverlay {
 				position: fixed;
 				inset: 0;
-				background: #020617;
+				background: var(--bg);
 				display: flex;
 				flex-direction: column;
 				align-items: center;
 				justify-content: center;
-				gap: 15px;
+				gap: 16px;
 				z-index: 9999;
 				transition: opacity 0.3s ease;
 			}
-			.spinner {
-				width: 42px;
-				height: 42px;
-				border: 4px solid #334155;
-				border-top-color: #22c55e;
+			.spinner-ring {
+				width: 46px; height: 46px;
 				border-radius: 50%;
-				animation: girar 0.8s linear infinite;
+				background: conic-gradient(var(--teal) 0deg, var(--line-soft) 0deg);
+				display: flex; align-items: center; justify-content: center;
+				animation: girar 1s linear infinite;
 			}
-			@keyframes girar {
-				to { transform: rotate(360deg); }
+			.spinner-ring::before {
+				content: "";
+				width: 34px; height: 34px;
+				border-radius: 50%;
+				background: var(--bg);
 			}
+			@keyframes girar { to { transform: rotate(360deg); } }
 			#loadingOverlay span {
-				color: #94a3b8;
-				font-size: 14px;
+				color: var(--text-faint);
+				font-size: 11px;
+				text-transform: uppercase;
+				letter-spacing: 0.12em;
+				font-family: 'Rajdhani', sans-serif;
 			}
 
-			/* --- toast / modal custom (substitui alert/confirm) --- */
+			/* ---------- toast / modal ---------- */
 			#toastContainer {
 				position: fixed;
-				top: 16px;
-				left: 50%;
+				top: 16px; left: 50%;
 				transform: translateX(-50%);
-				display: flex;
-				flex-direction: column;
-				gap: 10px;
-				z-index: 10000;
-				width: 90%;
-				max-width: 420px;
+				display: flex; flex-direction: column; gap: 10px;
+				z-index: 10000; width: 90%; max-width: 420px;
 			}
 			.toast {
-				background: #0f172a;
-				border: 1px solid #334155;
-				border-left: 4px solid #22c55e;
-				color: #fff;
+				background: var(--bg-panel);
+				border: 1px solid var(--line);
+				border-left: 3px solid var(--teal);
+				color: var(--text);
 				padding: 12px 16px;
-				border-radius: 10px;
-				box-shadow: 0 10px 25px rgba(0,0,0,0.4);
-				font-size: 14px;
+				border-radius: 8px;
+				box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+				font-size: 13px;
 				animation: entrarToast 0.25s ease;
 			}
-			.toast.erro { border-left-color: #ef4444; }
-			@keyframes entrarToast {
-				from { opacity: 0; transform: translateY(-10px); }
-				to { opacity: 1; transform: translateY(0); }
-			}
+			.toast.erro { border-left-color: var(--red); }
+			@keyframes entrarToast { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
 			.modal-backdrop {
-				position: fixed;
-				inset: 0;
-				background: rgba(2,6,23,0.7);
+				position: fixed; inset: 0;
+				background: rgba(5,7,10,0.75);
 				backdrop-filter: blur(4px);
-				display: flex;
-				align-items: center;
-				justify-content: center;
+				display: flex; align-items: center; justify-content: center;
 				z-index: 10000;
 			}
 			.modal-box {
-				background: #0f172a;
-				border: 1px solid #334155;
-				border-radius: 14px;
-				padding: 24px;
-				width: 90%;
-				max-width: 360px;
+				background: var(--bg-panel);
+				border: 1px solid var(--line);
+				border-radius: 12px;
+				padding: 26px;
+				width: 90%; max-width: 340px;
 				text-align: center;
-				box-shadow: 0 20px 40px rgba(0,0,0,0.5);
 			}
-			.modal-box p {
-				margin: 0 0 20px 0;
-				font-size: 15px;
-			}
-			.modal-acoes {
-				display: flex;
-				gap: 10px;
-				justify-content: center;
-			}
-			.modal-acoes button {
-				flex: 1;
-			}
-			.btn-cancelar {
-				background: #1e293b;
-				color: #fff;
-				border: 1px solid #334155;
-			}
-			
+			.modal-box p { margin: 0 0 20px 0; font-size: 14px; color: var(--text); }
+			.modal-acoes { display: flex; gap: 10px; }
+			.modal-acoes button { flex: 1; }
+			.btn-cancelar { background: transparent; color: var(--text-dim); border: 1px solid var(--line); }
 		</style>
 	</head>
 	<body>
 		<div id="loadingOverlay">
-			<div class="spinner"></div>
-			<span>Carregando dados...</span>
+			<div class="spinner-ring"></div>
+			<span>Carregando painel</span>
 		</div>
 		<div id="toastContainer"></div>
 
-		<div class="container">
-			<div class="header">
-				<h1>🚗 Consumo City</h1>
-				<div class="badge">Online</div>
+		<div class="dash-header">
+			<div class="dash-header-inner">
+				<div class="brand">
+					<div>
+						<div class="brand-mark">Consumo <span>City</span></div>
+						<div class="brand-sub">Painel de bordo · Honda City</div>
+					</div>
+				</div>
+				<div class="telltale"><i></i>Sincronizado</div>
 			</div>
-			<div class="card">
-				<h3>⛽ Novo Abastecimento</h3>
+		</div>
+
+		<div class="container">
+
+			<div class="card ticket">
+				<h3 class="card-title"><span class="dot"></span>Novo abastecimento</h3>
 
 				<div class="form-grid">
 					<div class="input-group">
 						<label>Data</label>
 						<input type="date" id="data">
 					</div>
-
 					<div class="input-group">
 						<label>Km atual</label>
-						<input type="number" step="0.1" id="km">
+						<input type="number" step="0.1" id="km" placeholder="0.0">
 					</div>
-
 					<div class="input-group">
 						<label>Litros</label>
-						<input type="number" step="0.1" id="litros">
-					</div>
-
-					<div class="input-group">
-						<label>R$/L</label>
-						<input type="number" step="0.01" id="valor">
+						<input type="number" step="0.1" id="litros" placeholder="0.0">
 					</div>
 					<div class="input-group">
-					    <label>Combustível</label>
-					    <select id="tipoCombustivel">
-					        <option value="comum">🟡 Gasolina Comum</option>
-					        <option value="aditivada">🟢 Gasolina Aditivada</option>
-					    </select>
+						<label>R$ por litro</label>
+						<input type="number" step="0.01" id="valor" placeholder="0.00">
+					</div>
+					<div class="input-group">
+						<label>Combustível</label>
+						<select id="tipoCombustivel">
+							<option value="comum">Gasolina comum</option>
+							<option value="aditivada">Gasolina aditivada</option>
+						</select>
 					</div>
 				</div>
 
@@ -482,108 +631,115 @@
 
 					<div class="acoes">
 						<button id="btnAdicionar" onclick="adicionar()">Adicionar</button>
-						<button class="reset" onclick="resetar()">Resetar</button>
+						<button class="reset" onclick="resetar()">Resetar tudo</button>
 					</div>
 				</div>
 			</div>
+
 			<div class="card">
-			<h3>📅 Selecionar período</h3>
-
-			<div style="display:flex; gap:10px; flex-wrap:wrap;">
-				
-				<select id="mesFiltro">
-				<option value="0">Janeiro</option>
-				<option value="1">Fevereiro</option>
-				<option value="2">Março</option>
-				<option value="3">Abril</option>
-				<option value="4">Maio</option>
-				<option value="5">Junho</option>
-				<option value="6">Julho</option>
-				<option value="7">Agosto</option>
-				<option value="8">Setembro</option>
-				<option value="9">Outubro</option>
-				<option value="10">Novembro</option>
-				<option value="11">Dezembro</option>
-				</select>
-
-				<input type="number" id="anoFiltro" placeholder="Ano" style="width:100px">
-
-				<button onclick="gerarPDFAnual()">📄 PDF Anual</button>
-
+				<h3 class="card-title"><span class="dot"></span>Período</h3>
+				<div class="periodo-row">
+					<select id="mesFiltro">
+						<option value="0">Janeiro</option>
+						<option value="1">Fevereiro</option>
+						<option value="2">Março</option>
+						<option value="3">Abril</option>
+						<option value="4">Maio</option>
+						<option value="5">Junho</option>
+						<option value="6">Julho</option>
+						<option value="7">Agosto</option>
+						<option value="8">Setembro</option>
+						<option value="9">Outubro</option>
+						<option value="10">Novembro</option>
+						<option value="11">Dezembro</option>
+					</select>
+					<input type="number" id="anoFiltro" placeholder="Ano" style="width:100px">
+					<button class="btn-pdf" onclick="gerarPDFAnual()">Exportar PDF anual</button>
+				</div>
 			</div>
-			</div>
+
 			<div class="card">
-				<h3>📊 Resumo - <span id="periodo"></span></h3>
+				<div class="resumo-titulo-row">
+					<h2>Resumo <span class="periodo-label" id="periodo"></span></h2>
+				</div>
 
-				<div class="grid">
-					<div class="kpi">
-						<span>Média</span>
-						<strong id="media">-</strong>
-						<small>km/l</small>
-					</div>
-
-					<div class="kpi">
-						<span>Autonomia</span>
-						<strong id="autonomia">-</strong>
-						<small>km</small>
-					</div>
-
-					<div class="kpi">
-						<span>Gasto mês</span>
-						<strong id="gastoMes">-</strong>
+				<div class="painel">
+					<div class="gauge-wrap">
+						<div class="fuel-ring" id="fuelRing">
+							<div class="fuel-ring-inner">
+								<strong id="autonomia">-</strong>
+								<small>km de autonomia</small>
+							</div>
+						</div>
+						<div class="gauge-caption" id="fuelCaption">tanque · 0%</div>
 					</div>
 
-					<div class="kpi">
-						<span>Custo/dia</span>
-						<strong id="custoDia">-</strong>
-					</div>
-
-					<div class="kpi">
-						<span>Km/dia</span>
-						<strong id="kmDia">-</strong>
-					</div>
-					<div class="kpi">
-						<span>Litros mês</span>
-						<strong id="litrosMes">-</strong>
-						<small>L</small>
-					</div>
-					<div class="kpi destaque">
-					    <span>Próximo abastecimento</span>
-					    <strong id="previsao">-</strong>
-					    <small>Estimativa</small>
-					</div>
-					<div class="kpi destaque">
-					    <span>Próxima aditivada</span>
-					    <strong id="cardAditivada">-</strong>
-					    <small id="textoAditivada"></small>
+					<div class="lcd-grid">
+						<div class="lcd">
+							<span>Média</span>
+							<strong id="media">-</strong>
+							<small>km/l</small>
+						</div>
+						<div class="lcd">
+							<span>Km por dia</span>
+							<strong id="kmDia">-</strong>
+							<small>km/dia</small>
+						</div>
+						<div class="lcd">
+							<span>Litros no mês</span>
+							<strong id="litrosMes">-</strong>
+							<small>litros</small>
+						</div>
+						<div class="lcd">
+							<span>Gasto no mês</span>
+							<strong id="gastoMes">-</strong>
+						</div>
+						<div class="lcd">
+							<span>Custo por dia</span>
+							<strong id="custoDia">-</strong>
+						</div>
+						<div class="lcd destaque">
+							<span>Próximo abastecimento</span>
+							<strong id="previsao" class="wrap-text">-</strong>
+							<small>estimativa</small>
+						</div>
+						<div class="lcd destaque">
+							<span>Próxima aditivada</span>
+							<strong id="cardAditivada">-</strong>
+							<small id="textoAditivada"></small>
+						</div>
 					</div>
 				</div>
 
-				<div class="extra">
-					<p>🟢 Melhor: <span id="melhor"></span> | 🔴 Pior: <span id="pior"></span></p>
-					<p id="status" class="status"></p>
-					<p id="alerta" class="alert"></p>
+				<div class="extra-row">
+					<div class="melhor-pior">Melhor <b class="g" id="melhor">-</b> km/l &nbsp;·&nbsp; Pior <b class="r" id="pior">-</b> km/l</div>
+					<div>
+						<span class="status-badge" id="status"></span>
+						<span class="alert" id="alerta"></span>
+					</div>
 				</div>
 			</div>
+
 			<div class="card">
-				<h3>Gráfico</h3>
+				<h3 class="card-title"><span class="dot"></span>Curva de consumo</h3>
 				<canvas id="grafico"></canvas>
 			</div>
+
 			<div class="card">
-				<h3>Histórico</h3>
-				<div id="tabelaWrapper">
-					<table class="table modern">
+				<h3 class="card-title"><span class="dot"></span>Histórico</h3>
+				<div id="tabelaWrapper" class="table-scroll">
+					<table class="modern">
 						<thead>
 							<tr>
-							    <th>Data</th>
-							    <th>Km</th>
-							    <th>Km rodados</th>
-							    <th>Dias</th>
-							    <th>Litros</th>
-							    <th>Combustível</th>
-							    <th>Km/L</th>
-							    <th>R$/Km</th>
-							    <th>Ações</th>
+								<th>Data</th>
+								<th>Km</th>
+								<th>Rodados</th>
+								<th>Dias</th>
+								<th>Litros</th>
+								<th>Combustível</th>
+								<th>Km/l</th>
+								<th>R$/km</th>
+								<th></th>
 							</tr>
 						</thead>
 						<tbody id="tabela"></tbody>
@@ -596,6 +752,7 @@
 				</div>
 			</div>
 		</div>
+
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 		<script type="module">
 			import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -623,10 +780,12 @@
 			window.resetar = resetar;
 			window.atualizar = atualizar;
 
+			const CAPACIDADE_TANQUE = 38;
+
 			let historico = [];
 			let tanqueAtual = parseFloat(localStorage.getItem("tanqueAtual")) || 0;
 			let chart;
-			let editandoId = null; // guarda o ID do documento, não mais o índice (evita editar o registro errado)
+			let editandoId = null; // guarda o ID do documento (evita editar o registro errado se a lista reordenar)
 			let primeiraCarga = true;
 
 			// ---------- Toast (substitui alert) ----------
@@ -653,66 +812,53 @@
 							<p>${mensagem}</p>
 							<div class="modal-acoes">
 								<button class="btn-cancelar" id="modalCancelar">Cancelar</button>
-								<button class="reset" id="modalConfirmar">Confirmar</button>
+								<button class="reset" id="modalConfirmar" style="border-color:#ff5c5c;">Confirmar</button>
 							</div>
 						</div>
 					`;
 					document.body.appendChild(backdrop);
 
-					backdrop.querySelector("#modalCancelar").onclick = () => {
-						backdrop.remove();
-						resolve(false);
-					};
-					backdrop.querySelector("#modalConfirmar").onclick = () => {
-						backdrop.remove();
-						resolve(true);
-					};
+					backdrop.querySelector("#modalCancelar").onclick = () => { backdrop.remove(); resolve(false); };
+					backdrop.querySelector("#modalConfirmar").onclick = () => { backdrop.remove(); resolve(true); };
 				});
 			}
-			
+
 			function parseDataLocal(valor) {
-			  if (!valor) return new Date();
-
-			  const [ano, mes, dia] = valor.split("-");
-			  return new Date(ano, mes - 1, dia);
+				if (!valor) return new Date();
+				const [ano, mes, dia] = valor.split("-");
+				return new Date(ano, mes - 1, dia);
 			}
+
 			function carregarDados() {
-			  onSnapshot(collection(db, "abastecimentos"), (snapshot) => {
-			    historico = [];
-			
-			    snapshot.forEach((docItem) => {
-			      historico.push({
-			        id: docItem.id,
-			        ...docItem.data()
-			      });
-			    });
-			
-			    recalcularHistorico();
-			    recalcularTanque();
-			    atualizar();
+				onSnapshot(collection(db, "abastecimentos"), (snapshot) => {
+					historico = [];
+					snapshot.forEach((docItem) => {
+						historico.push({ id: docItem.id, ...docItem.data() });
+					});
 
-			    if (primeiraCarga) {
-			      primeiraCarga = false;
-			      const overlay = document.getElementById("loadingOverlay");
-			      overlay.style.opacity = "0";
-			      setTimeout(() => overlay.remove(), 300);
-			    }
-			  }, (erro) => {
-			    console.error(erro);
-			    toast("Erro ao carregar dados do Firebase.", "erro");
-			  });
+					recalcularHistorico();
+					recalcularTanque();
+					atualizar();
+
+					if (primeiraCarga) {
+						primeiraCarga = false;
+						const overlay = document.getElementById("loadingOverlay");
+						overlay.style.opacity = "0";
+						setTimeout(() => overlay.remove(), 300);
+					}
+				}, (erro) => {
+					console.error(erro);
+					toast("Erro ao carregar dados do Firebase.", "erro");
+				});
 			}
+
 			async function resetar() {
 				const ok = await confirmarAcao("Apagar todos os registros? Essa ação não pode ser desfeita.");
 				if (!ok) return;
 
 				const snapshot = await getDocs(collection(db, "abastecimentos"));
-
 				const promises = [];
-				snapshot.forEach((docItem) => {
-					promises.push(deleteDoc(doc(db, "abastecimentos", docItem.id)));
-				});
-
+				snapshot.forEach((docItem) => promises.push(deleteDoc(doc(db, "abastecimentos", docItem.id))));
 				await Promise.all(promises);
 
 				historico = [];
@@ -722,14 +868,13 @@
 				atualizar();
 				toast("Todos os registros foram apagados.");
 			}
+
 			async function excluir(index) {
 				const ok = await confirmarAcao("Excluir este registro?");
 				if (!ok) return;
 
 				const id = historico[index].id;
-
 				await deleteDoc(doc(db, "abastecimentos", id));
-
 				historico.splice(index, 1);
 
 				recalcularHistorico();
@@ -737,6 +882,7 @@
 				atualizar();
 				toast("Registro excluído.");
 			}
+
 			function editar(index) {
 				const item = historico[index];
 
@@ -751,109 +897,78 @@
 
 				const btn = document.getElementById("btnAdicionar");
 				btn.innerText = "Salvar edição";
-				document.querySelector(".card").scrollIntoView({ behavior: "smooth" });
+				document.querySelector(".ticket").scrollIntoView({ behavior: "smooth" });
 			}
+
 			function recalcularTanque() {
-			  let tanque = 0;
-			  const CAPACIDADE_TANQUE = 38;
-			
-			  historico.forEach((item) => {
-			    if (item.completo) {
-			      tanque = CAPACIDADE_TANQUE;
-			    } else {
-			      tanque += item.litros;
-			    }
-			
-			    tanque = Math.max(0, Math.min(CAPACIDADE_TANQUE, tanque));
-			  });
-			
-			  tanqueAtual = tanque;
-			  localStorage.setItem("tanqueAtual", tanqueAtual);
-			}
-			async function adicionar() {
-			  const km = parseFloat(kmEl.value);
-			  const litros = parseFloat(litrosEl.value);
-			  const valor = parseFloat(valorEl.value);
-			  const completo = document.getElementById("completo").checked;
-			  const tipoCombustivel = document.getElementById("tipoCombustivel").value;
-			
-			  if (!km || !litros || !valor) {
-			    toast("Preencha todos os campos!", "erro");
-			    return;
-			  }
-			
-			  const hoje = parseDataLocal(dataEl.value);
-			  let kmRodado = 0, dias = null;
-
-			  // acha o índice do registro em edição (se houver) pela lista já ordenada
-			  const historicoOrdenadoTmp = [...historico].sort((a, b) => new Date(a.dataISO) - new Date(b.dataISO));
-			  const editandoIndexAtual = editandoId
-			    ? historicoOrdenadoTmp.findIndex(h => h.id === editandoId)
-			    : null;
-			
-			  if (historico.length > 0) {
-				let ultimo = historicoOrdenadoTmp.at(-1);
-
-				if (editandoIndexAtual !== null && editandoIndexAtual !== -1) {
-					const anterior = historicoOrdenadoTmp[editandoIndexAtual - 1];
-					const proximo = historicoOrdenadoTmp[editandoIndexAtual + 1];
-
-					if (anterior && hoje <= new Date(anterior.dataISO)) {
-						toast("Data menor ou igual ao anterior!", "erro");
-						return;
-					}
-
-					if (proximo && hoje >= new Date(proximo.dataISO)) {
-						toast("Data maior ou igual ao próximo!", "erro");
-						return;
-					}
-
-					if (anterior && km <= anterior.km) {
-						toast("KM menor que o anterior!", "erro");
-						return;
-					}
-
-					if (proximo && km >= proximo.km) {
-						toast("KM maior que o próximo!", "erro");
-						return;
-					}
-
-					if (anterior) {
-						dias = Math.max(1, Math.round((hoje - new Date(anterior.dataISO)) / (1000*60*60*24)));
-						kmRodado = km - anterior.km;
+				let tanque = 0;
+				historico.forEach((item) => {
+					if (item.completo) {
+						tanque = CAPACIDADE_TANQUE;
 					} else {
-						dias = 0;
-						kmRodado = 0;
+						tanque += item.litros;
 					}
+					tanque = Math.max(0, Math.min(CAPACIDADE_TANQUE, tanque));
+				});
+				tanqueAtual = tanque;
+				localStorage.setItem("tanqueAtual", tanqueAtual);
+			}
 
-				} else {
-					if (ultimo && hoje <= new Date(ultimo.dataISO)) {
-						toast("Data deve ser maior que o último registro!", "erro");
-						return;
-					}
-					if (ultimo && km <= ultimo.km) {
-						toast("KM inválido", "erro");
-						return;
-					}
-					if (ultimo) {
-						dias = Math.max(1, Math.round((hoje - new Date(ultimo.dataISO)) / (1000*60*60*24)));
-						kmRodado = km - ultimo.km;
+			async function adicionar() {
+				const km = parseFloat(kmEl.value);
+				const litros = parseFloat(litrosEl.value);
+				const valor = parseFloat(valorEl.value);
+				const completo = document.getElementById("completo").checked;
+				const tipoCombustivel = document.getElementById("tipoCombustivel").value;
+
+				if (!km || !litros || !valor) {
+					toast("Preencha todos os campos!", "erro");
+					return;
+				}
+
+				const hoje = parseDataLocal(dataEl.value);
+				let kmRodado = 0, dias = null;
+
+				const historicoOrdenadoTmp = [...historico].sort((a, b) => new Date(a.dataISO) - new Date(b.dataISO));
+				const editandoIndexAtual = editandoId ? historicoOrdenadoTmp.findIndex(h => h.id === editandoId) : null;
+
+				if (historico.length > 0) {
+					let ultimo = historicoOrdenadoTmp.at(-1);
+
+					if (editandoIndexAtual !== null && editandoIndexAtual !== -1) {
+						const anterior = historicoOrdenadoTmp[editandoIndexAtual - 1];
+						const proximo = historicoOrdenadoTmp[editandoIndexAtual + 1];
+
+						if (anterior && hoje <= new Date(anterior.dataISO)) { toast("Data menor ou igual ao anterior!", "erro"); return; }
+						if (proximo && hoje >= new Date(proximo.dataISO)) { toast("Data maior ou igual ao próximo!", "erro"); return; }
+						if (anterior && km <= anterior.km) { toast("KM menor que o anterior!", "erro"); return; }
+						if (proximo && km >= proximo.km) { toast("KM maior que o próximo!", "erro"); return; }
+
+						if (anterior) {
+							dias = Math.max(1, Math.round((hoje - new Date(anterior.dataISO)) / (1000*60*60*24)));
+							kmRodado = km - anterior.km;
+						} else {
+							dias = 0;
+							kmRodado = 0;
+						}
+					} else {
+						if (ultimo && hoje <= new Date(ultimo.dataISO)) { toast("Data deve ser maior que o último registro!", "erro"); return; }
+						if (ultimo && km <= ultimo.km) { toast("KM inválido", "erro"); return; }
+						if (ultimo) {
+							dias = Math.max(1, Math.round((hoje - new Date(ultimo.dataISO)) / (1000*60*60*24)));
+							kmRodado = km - ultimo.km;
+						}
 					}
 				}
-			  }
 
-			  	const dataObj = new Date(hoje);
+				const dataObj = new Date(hoje);
 				const novoRegistro = {
-				data: hoje.toLocaleDateString(),
-				dataISO: hoje.toISOString(),
-
-				mes: dataObj.getMonth(),   // 0-11
-				ano: dataObj.getFullYear(),
-
-				km, litros, valor,
-				kmRodado,
-				dias, tipoCombustivel,
-				completo 
+					data: hoje.toLocaleDateString(),
+					dataISO: hoje.toISOString(),
+					mes: dataObj.getMonth(),
+					ano: dataObj.getFullYear(),
+					km, litros, valor,
+					kmRodado, dias, tipoCombustivel, completo
 				};
 
 				if (editandoId !== null) {
@@ -870,10 +985,10 @@
 				recalcularHistorico();
 				recalcularTanque();
 				atualizar();
-			
-			  kmEl.value = litrosEl.value = valorEl.value = dataEl.value = "";
+
+				kmEl.value = litrosEl.value = valorEl.value = dataEl.value = "";
 			}
-			
+
 			const kmEl = document.getElementById("km");
 			const mediaEl = document.getElementById("media");
 			const autonomiaEl = document.getElementById("autonomia");
@@ -894,115 +1009,73 @@
 			const litrosMesEl = document.getElementById("litrosMes");
 			const mesFiltroEl = document.getElementById("mesFiltro");
 			const anoFiltroEl = document.getElementById("anoFiltro");
+			const fuelRingEl = document.getElementById("fuelRing");
+			const fuelCaptionEl = document.getElementById("fuelCaption");
 
-			// padrão = hoje
 			const hoje = new Date();
 			mesFiltroEl.value = hoje.getMonth();
 			anoFiltroEl.value = hoje.getFullYear();
-			
+
 			function recalcularHistorico() {
-			
-			    historico.sort((a, b) =>
-			        new Date(a.dataISO) - new Date(b.dataISO)
-			    );
-			
-			    let litrosAcumulados = 0;
-			    let valorTotalAcumulado = 0;
-			
-			    let kmInicio = null;
-			    let cicloAtivo = false;
-			
-			    for (let i = 0; i < historico.length; i++) {
-			
-			        const atual = historico[i];
-			        const anterior = historico[i - 1];
-			
-			        atual.consumo = null;
-			        atual.custoKm = null;
-			        atual.litrosCalculados = null;
-			        atual.kmCalculado = null;
-			
-			        // KM rodado
-			        if (anterior) {
-			
-			            atual.kmRodado = atual.km - anterior.km;
-			
-			            const dataAtual = new Date(atual.dataISO);
-			            const dataAnterior = new Date(anterior.dataISO);
-			
-			            atual.dias = Math.max(
-			                1,
-			                Math.round(
-			                    (dataAtual - dataAnterior) /
-			                    (1000 * 60 * 60 * 24)
-			                )
-			            );
-			
-			        } else {
-			
-			            atual.kmRodado = 0;
-			            atual.dias = 0;
-			        }
-			
-			        // ainda não existe referência válida
-			        if (!cicloAtivo) {
-			
-			            // espera primeiro tanque cheio
-			            if (atual.completo) {
-			
-			                cicloAtivo = true;
-			                kmInicio = atual.km;
-			
-			                litrosAcumulados = 0;
-			                valorTotalAcumulado = 0;
-			            }
-			
-			            continue;
-			        }
-			
-			        // acumula após o último cheio
-			        litrosAcumulados += atual.litros;
-			
-			        valorTotalAcumulado +=
-			            atual.litros * atual.valor;
-			
-			        // fecha ciclo
-			        if (atual.completo) {
-			
-			            const kmPercorrido =
-			                atual.km - kmInicio;
-			
-			            if (
-			                kmPercorrido > 0 &&
-			                litrosAcumulados > 0
-			            ) {
-			
-			                atual.consumo =
-			                    kmPercorrido / litrosAcumulados;
-			
-			                atual.custoKm =
-			                    valorTotalAcumulado / kmPercorrido;
-			
-			                atual.kmCalculado =
-			                    kmPercorrido;
-			
-			                atual.litrosCalculados =
-			                    litrosAcumulados;
-			            }
-			
-			            // reinicia ciclo
-			            kmInicio = atual.km;
-			
-			            litrosAcumulados = 0;
-			            valorTotalAcumulado = 0;
-			        }
-			    }
+				historico.sort((a, b) => new Date(a.dataISO) - new Date(b.dataISO));
+
+				let litrosAcumulados = 0;
+				let valorTotalAcumulado = 0;
+				let kmInicio = null;
+				let cicloAtivo = false;
+
+				for (let i = 0; i < historico.length; i++) {
+					const atual = historico[i];
+					const anterior = historico[i - 1];
+
+					atual.consumo = null;
+					atual.custoKm = null;
+					atual.litrosCalculados = null;
+					atual.kmCalculado = null;
+
+					if (anterior) {
+						atual.kmRodado = atual.km - anterior.km;
+						const dataAtual = new Date(atual.dataISO);
+						const dataAnterior = new Date(anterior.dataISO);
+						atual.dias = Math.max(1, Math.round((dataAtual - dataAnterior) / (1000 * 60 * 60 * 24)));
+					} else {
+						atual.kmRodado = 0;
+						atual.dias = 0;
+					}
+
+					if (!cicloAtivo) {
+						if (atual.completo) {
+							cicloAtivo = true;
+							kmInicio = atual.km;
+							litrosAcumulados = 0;
+							valorTotalAcumulado = 0;
+						}
+						continue;
+					}
+
+					litrosAcumulados += atual.litros;
+					valorTotalAcumulado += atual.litros * atual.valor;
+
+					if (atual.completo) {
+						const kmPercorrido = atual.km - kmInicio;
+
+						if (kmPercorrido > 0 && litrosAcumulados > 0) {
+							atual.consumo = kmPercorrido / litrosAcumulados;
+							atual.custoKm = valorTotalAcumulado / kmPercorrido;
+							atual.kmCalculado = kmPercorrido;
+							atual.litrosCalculados = litrosAcumulados;
+						}
+
+						kmInicio = atual.km;
+						litrosAcumulados = 0;
+						valorTotalAcumulado = 0;
+					}
+				}
 			}
+
 			function atualizar() {
-			  tabela.innerHTML = "";
-				let historicoOrdenado = [...historico].sort(
-				  (a, b) => new Date(a.dataISO) - new Date(b.dataISO)
-				);
+				tabela.innerHTML = "";
+				let historicoOrdenado = [...historico].sort((a, b) => new Date(a.dataISO) - new Date(b.dataISO));
 				let completosDesdeAditivada = 0;
 				let totalKm = 0, totalLitros = 0;
 				let consumos = [];
@@ -1013,97 +1086,74 @@
 				let gastoValido = 0;
 				let diasValidos = 0;
 				let itensNoPeriodo = 0;
-			
+
 				const mesAtual = parseInt(mesFiltroEl.value);
 				const anoAtual = parseInt(anoFiltroEl.value);
-				const nomesMeses = [
-				"Jan","Fev","Mar","Abr","Mai","Jun",
-				"Jul","Ago","Set","Out","Nov","Dez"
-				];
+				const nomesMeses = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 
-				document.getElementById("periodo").innerText =
-				`${nomesMeses[mesAtual]}/${anoAtual}`;
-			
+				document.getElementById("periodo").innerText = `· ${nomesMeses[mesAtual]} / ${anoAtual}`;
+
 				historicoOrdenado.forEach((item, i) => {
+					const indexReal = historico.findIndex(h => h.id === item.id);
 
-				const indexReal = historico.findIndex(h => h.id === item.id);
+					let dias = "-";
+					const dataItem = new Date(item.dataISO);
+					const mesItem = dataItem.getMonth();
+					const anoItem = dataItem.getFullYear();
 
-				let dias = "-";
-				const dataItem = new Date(item.dataISO);
-				const mesItem = dataItem.getMonth();
-				const anoItem = dataItem.getFullYear();
-
-				if (mesItem === mesAtual && anoItem === anoAtual && i > 0) {
-					const atual = new Date(item.dataISO);
-
-					const anteriorItem = historicoOrdenado
-					.slice(0, i)
-					.reverse()
-					.find(x => {
-						const d = new Date(x.dataISO);
-						return d.getMonth() === mesAtual && d.getFullYear() === anoAtual;
-					});
-
-					if (anteriorItem) {
-					const anterior = new Date(anteriorItem.dataISO);
-
-					dias = Math.max(
-						1,
-						Math.round((atual - anterior) / (1000 * 60 * 60 * 24))
-					);
-					}
-				}
-				// TUDO filtrado por mês
-				if (mesItem === mesAtual && anoItem === anoAtual) {
-					itensNoPeriodo++;
-					tabela.innerHTML += `
-					<tr>
-						<td>${item.data}</td>
-						<td class="td-km">${item.km}</td>
-						<td>${item.kmRodado || "-"}</td>
-						<td>${dias !== "-" ? dias + "d" : "-"}</td>
-						<td>${item.litros}</td>
-						<td>
-						    ${
-						        item.tipoCombustivel=="aditivada"
-						        ? "🟢 Aditivada"
-						        : "🟡 Comum"
-						    }
-						</td>
-						<td class="td-consumo">${item.consumo ? item.consumo.toFixed(2) : "-"}</td>
-						<td class="td-custo">${item.custoKm ? item.custoKm.toFixed(2) : "-"}</td>
-						<td>
-							<button onclick="editar(${indexReal})">✏️</button>
-							<button onclick="excluir(${indexReal})">🗑️</button>
-						</td>
-					</tr>`;
-					// KPIs
-					litrosMes += item.litros;
-					gastoMes += item.litros * item.valor;
-					if (i > 0 && item.dias) {
-					    gastoValido += item.litros * item.valor;
-					    diasValidos += item.dias;
-					}
-					// consumo
-					if (item.consumo && isFinite(item.consumo)) {
-					
-					    totalKm += item.kmCalculado || 0;
-					
-					    totalLitros += item.litrosCalculados || 0;
-					
-					    consumos.push(item.consumo);
-					    coresConsumos.push(item.tipoCombustivel === "aditivada" ? "#22c55e" : "#38bdf8");
+					if (mesItem === mesAtual && anoItem === anoAtual && i > 0) {
+						const atual = new Date(item.dataISO);
+						const anteriorItem = historicoOrdenado.slice(0, i).reverse().find(x => {
+							const d = new Date(x.dataISO);
+							return d.getMonth() === mesAtual && d.getFullYear() === anoAtual;
+						});
+						if (anteriorItem) {
+							const anterior = new Date(anteriorItem.dataISO);
+							dias = Math.max(1, Math.round((atual - anterior) / (1000 * 60 * 60 * 24)));
+						}
 					}
 
-					// km/dia
-					if (dias !== "-" && item.kmRodado) {
-						totalDias += dias;
-						totalKmDia += item.kmRodado;
-					}
-				}
-			  });
+					if (mesItem === mesAtual && anoItem === anoAtual) {
+						itensNoPeriodo++;
+						tabela.innerHTML += `
+						<tr>
+							<td>${item.data}</td>
+							<td class="td-km">${item.km}</td>
+							<td>${item.kmRodado || "-"}</td>
+							<td>${dias !== "-" ? dias + "d" : "-"}</td>
+							<td>${item.litros}</td>
+							<td>
+								<span class="fuel-chip ${item.tipoCombustivel === "aditivada" ? "aditivada" : "comum"}">
+									<i></i>${item.tipoCombustivel === "aditivada" ? "Aditivada" : "Comum"}
+								</span>
+							</td>
+							<td class="td-consumo">${item.consumo ? item.consumo.toFixed(2) : "-"}</td>
+							<td class="td-custo">${item.custoKm ? item.custoKm.toFixed(2) : "-"}</td>
+							<td class="acoes-cell">
+								<button class="icon-btn" onclick="editar(${indexReal})">Editar</button>
+								<button class="icon-btn" onclick="excluir(${indexReal})">Excluir</button>
+							</td>
+						</tr>`;
 
-				// estado vazio: mostra mensagem quando não há registros no período filtrado
+						litrosMes += item.litros;
+						gastoMes += item.litros * item.valor;
+						if (i > 0 && item.dias) {
+							gastoValido += item.litros * item.valor;
+							diasValidos += item.dias;
+						}
+						if (item.consumo && isFinite(item.consumo)) {
+							totalKm += item.kmCalculado || 0;
+							totalLitros += item.litrosCalculados || 0;
+							consumos.push(item.consumo);
+							coresConsumos.push(item.tipoCombustivel === "aditivada" ? "#2dd4bf" : "#5b9bd5");
+						}
+						if (dias !== "-" && item.kmRodado) {
+							totalDias += dias;
+							totalKmDia += item.kmRodado;
+						}
+					}
+				});
+
 				if (itensNoPeriodo === 0) {
 					tabelaWrapper.style.display = "none";
 					emptyState.style.display = "block";
@@ -1112,308 +1162,216 @@
 					emptyState.style.display = "none";
 				}
 
-				for(let i=historicoOrdenado.length-1;i>=0;i--){
-				
-				    const item = historicoOrdenado[i];
-				
-				    if(!item.completo) continue;
-				
-				    if(item.tipoCombustivel==="aditivada"){
-				        break;
-				    }
-				
-				    completosDesdeAditivada++;
+				for (let i = historicoOrdenado.length - 1; i >= 0; i--) {
+					const item = historicoOrdenado[i];
+					if (!item.completo) continue;
+					if (item.tipoCombustivel === "aditivada") break;
+					completosDesdeAditivada++;
 				}
-				
-				const RESTAM = Math.max(0,4-completosDesdeAditivada);
-				
-				const card=document.getElementById("cardAditivada");
-				const texto=document.getElementById("textoAditivada");
-				
-				if(RESTAM===0){
-				
-				    card.innerText="⛽ AGORA";
-				    card.style.color="#ef4444";
-				
-				    texto.innerText=
-				    "No próximo abastecimento completo utilize gasolina aditivada.";
-				
-				}else{
-				
-				    card.innerText=RESTAM+" tanque(s)";
-				    card.style.color="#22c55e";
-				
-				    texto.innerText=
-				    "Depois utilize 1 tanque completo de gasolina aditivada.";
+
+				const RESTAM = Math.max(0, 4 - completosDesdeAditivada);
+				const card = document.getElementById("cardAditivada");
+				const texto = document.getElementById("textoAditivada");
+
+				if (RESTAM === 0) {
+					card.innerText = "Agora";
+					card.style.color = "#ff5c5c";
+					texto.innerText = "No próximo tanque completo, use aditivada.";
+				} else {
+					card.innerText = RESTAM + " tanque(s)";
+					card.style.color = "#f5a623";
+					texto.innerText = "Depois, 1 tanque completo de aditivada.";
 				}
+
 				let media = totalLitros > 0 ? (totalKm / totalLitros) : 0;
 				if (!isFinite(media)) media = 0;
 
 				let mediaKmDia = totalDias > 0 ? (totalKmDia / totalDias) : 0;
 				if (!isFinite(mediaKmDia)) mediaKmDia = 0;
-			  
+
 				mediaEl.innerText = isFinite(media) ? media.toFixed(2) : "-";
-			
-				// calcula autonomia como número
+
 				let autonomia = media * tanqueAtual;
 				if (!isFinite(autonomia)) autonomia = 0;
 				autonomiaEl.innerText = autonomia.toFixed(0);
 
-				
+				// gauge visual: anel representa o nível do tanque
+				const pctTanque = CAPACIDADE_TANQUE > 0 ? Math.round((tanqueAtual / CAPACIDADE_TANQUE) * 100) : 0;
+				fuelRingEl.style.setProperty("--fuel-pct", Math.max(0, Math.min(100, pctTanque)));
+				fuelCaptionEl.innerText = `tanque · ${pctTanque}%`;
+
 				let diasRestantes = mediaKmDia > 0 ? (autonomia / mediaKmDia) : 0;
-			
+
 				if (mediaKmDia > 0 && autonomia > 0) {
-				  const hoje = new Date();
-				  const dias = Math.max(0, Math.ceil(diasRestantes));
-				  
-				  const dataPrevista = new Date(hoje);
-				  dataPrevista.setDate(hoje.getDate() + dias);
-			
-				  if (dias === 0) {
-				  previsaoEl.innerText = "HOJE ⚠️";
-				  previsaoEl.style.color = "#ef4444"; // vermelho
-				} else if (dias === 1) {
-				  previsaoEl.innerText = `${dataPrevista.toLocaleDateString()} (AMANHÃ)`;
-				  previsaoEl.style.color = "#facc15"; // amarelo
+					const hojeD = new Date();
+					const dias = Math.max(0, Math.ceil(diasRestantes));
+					const dataPrevista = new Date(hojeD);
+					dataPrevista.setDate(hojeD.getDate() + dias);
+
+					if (dias === 0) {
+						previsaoEl.innerText = "Hoje";
+						previsaoEl.style.color = "#ff5c5c";
+					} else if (dias === 1) {
+						previsaoEl.innerText = `${dataPrevista.toLocaleDateString()} (amanhã)`;
+						previsaoEl.style.color = "#f5a623";
+					} else {
+						previsaoEl.innerText = `${dataPrevista.toLocaleDateString()} (${dias}d)`;
+						previsaoEl.style.color = "#2dd4bf";
+					}
 				} else {
-				  previsaoEl.innerText = `${dataPrevista.toLocaleDateString()} (${dias} dias)`;
-				  previsaoEl.style.color = "#22c55e"; // verde
+					previsaoEl.innerText = "-";
 				}
-			
-				} else {
-				  previsaoEl.innerText = "-";
-				}
-			
+
 				gastoMesEl.innerText = "R$ " + gastoMes.toFixed(2);
 				litrosMesEl.innerText = litrosMes.toFixed(1);
-			
-				custoDiaEl.innerText = diasValidos > 0
-				  ? "R$ " + (gastoValido / diasValidos).toFixed(2)
-				  : "-";
+				custoDiaEl.innerText = diasValidos > 0 ? "R$ " + (gastoValido / diasValidos).toFixed(2) : "-";
 				document.getElementById("kmDia").innerText = mediaKmDia.toFixed(1);
-			
+
 				if (consumos.length) {
-				const melhor = Math.max(...consumos);
-				const pior = Math.min(...consumos);
-
-				melhorEl.innerText = isFinite(melhor) ? melhor.toFixed(2) : "-";
-				piorEl.innerText = isFinite(pior) ? pior.toFixed(2) : "-";
+					const melhor = Math.max(...consumos);
+					const pior = Math.min(...consumos);
+					melhorEl.innerText = isFinite(melhor) ? melhor.toFixed(2) : "-";
+					piorEl.innerText = isFinite(pior) ? pior.toFixed(2) : "-";
 				} else {
-				melhorEl.innerText = "-";
-				piorEl.innerText = "-";
+					melhorEl.innerText = "-";
+					piorEl.innerText = "-";
 				}
-			
-			  gerarStatus(media, consumos);
-			  gerarGrafico(consumos, coresConsumos);
+
+				gerarStatus(media, consumos);
+				gerarGrafico(consumos, coresConsumos);
 			}
-			
+
 			function gerarStatus(media, consumos) {
-			  if (!consumos.length) return;
-			
-			  const ultimo = consumos.at(-1);
-			
-			  if (ultimo >= media * 0.95) {
-			    statusEl.innerText = "🟢 BOM";
-			  } else if (ultimo >= media * 0.85) {
-			    statusEl.innerText = "🟡 NORMAL";
-			  } else {
-			    statusEl.innerText = "🔴 RUIM";
-			  }
-			
-			  if (ultimo < media * 0.85) {
-			    alertaEl.innerText = "⚠️ Consumo abaixo do normal!";
-			  } else {
-			    alertaEl.innerText = "";
-			  }
+				if (!consumos.length) { statusEl.innerText = ""; alertaEl.innerText = ""; return; }
+
+				const ultimo = consumos.at(-1);
+
+				if (ultimo >= media * 0.95) {
+					statusEl.innerText = "Bom";
+					statusEl.style.color = "#2dd4bf";
+				} else if (ultimo >= media * 0.85) {
+					statusEl.innerText = "Normal";
+					statusEl.style.color = "#f5a623";
+				} else {
+					statusEl.innerText = "Ruim";
+					statusEl.style.color = "#ff5c5c";
+				}
+
+				alertaEl.innerText = ultimo < media * 0.85 ? "Consumo abaixo do normal" : "";
 			}
-			
+
 			function gerarGrafico(consumos, coresConsumos = []) {
-			if (chart) chart.destroy();
+				if (chart) chart.destroy();
 
-			const ctx = grafico.getContext("2d");
+				const ctx = grafico.getContext("2d");
+				const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+				gradient.addColorStop(0, "rgba(45,212,191,0.35)");
+				gradient.addColorStop(1, "rgba(45,212,191,0)");
 
-			// gradient
-			const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-			gradient.addColorStop(0, "rgba(34,197,94,0.4)");
-			gradient.addColorStop(1, "rgba(34,197,94,0)");
+				const media = consumos.length ? consumos.reduce((a, b) => a + b, 0) / consumos.length : 0;
 
-			// média
-			const media = consumos.length
-				? consumos.reduce((a, b) => a + b, 0) / consumos.length
-				: 0;
-
-			chart = new Chart(ctx, {
-				type: "line",
-				data: {
-				labels: consumos.map((_, i) => `#${i + 1}`),
-				datasets: [
-					{
-					label: "Consumo (Km/L)",
-					data: consumos,
-					tension: 0.4, // curva suave
-					fill: true,
-					backgroundColor: gradient,
-					borderColor: "#22c55e",
-					borderWidth: 2,
-					pointRadius: 5,
-					pointHoverRadius: 7,
-					// pontos coloridos: verde = aditivada, azul = comum
-					pointBackgroundColor: coresConsumos.length ? coresConsumos : "#22c55e",
-					pointBorderColor: "#0f172a",
-					pointBorderWidth: 1.5
+				chart = new Chart(ctx, {
+					type: "line",
+					data: {
+						labels: consumos.map((_, i) => `#${i + 1}`),
+						datasets: [
+							{
+								label: "Consumo (km/l)",
+								data: consumos,
+								tension: 0.4,
+								fill: true,
+								backgroundColor: gradient,
+								borderColor: "#2dd4bf",
+								borderWidth: 2,
+								pointRadius: 5,
+								pointHoverRadius: 7,
+								pointBackgroundColor: coresConsumos.length ? coresConsumos : "#2dd4bf",
+								pointBorderColor: "#0d0f14",
+								pointBorderWidth: 1.5
+							},
+							{
+								label: "Média",
+								data: consumos.map(() => media),
+								borderColor: "#f5a623",
+								borderDash: [5, 5],
+								pointRadius: 0,
+								borderWidth: 2
+							}
+						]
 					},
-					{
-					label: "Média",
-					data: consumos.map(() => media),
-					borderColor: "#facc15",
-					borderDash: [5, 5],
-					pointRadius: 0,
-					borderWidth: 2
+					options: {
+						responsive: true,
+						plugins: {
+							legend: { labels: { color: "#838a99", font: { family: "Inter" } } },
+							tooltip: {
+								backgroundColor: "#0b0d11",
+								borderColor: "#2dd4bf",
+								borderWidth: 1,
+								titleColor: "#2dd4bf",
+								bodyColor: "#eef0f3",
+								padding: 10,
+								displayColors: false
+							}
+						},
+						scales: {
+							x: { ticks: { color: "#545b69" }, grid: { display: false } },
+							y: { ticks: { color: "#545b69" }, grid: { color: "#1c212a" } }
+						},
+						interaction: { mode: "index", intersect: false }
 					}
-				]
-				},
-				options: {
-				responsive: true,
-				plugins: {
-					legend: {
-					labels: {
-						color: "#fff"
-					}
-					},
-					tooltip: {
-					backgroundColor: "#020617",
-					borderColor: "#22c55e",
-					borderWidth: 1,
-					titleColor: "#22c55e",
-					bodyColor: "#fff",
-					padding: 10,
-					displayColors: false
-					}
-				},
-				scales: {
-					x: {
-					ticks: { color: "#94a3b8" },
-					grid: { display: false }
-					},
-					y: {
-					ticks: { color: "#94a3b8" },
-					grid: {
-						color: "#1e293b"
-					}
-					}
-				},
-				interaction: {
-					mode: 'index',
-					intersect: false
-				}
-				}
-			});
+				});
 			}
-			async function gerarPDFAnual() {
-				if (!historico.length) {
-					toast("Sem dados para gerar relatório!", "erro");
-					return;
-				}
 
-				if (!window.jspdf) {
-					toast("Erro ao carregar biblioteca PDF!", "erro");
-					return;
-				}
+			async function gerarPDFAnual() {
+				if (!historico.length) { toast("Sem dados para gerar relatório!", "erro"); return; }
+				if (!window.jspdf) { toast("Erro ao carregar biblioteca PDF!", "erro"); return; }
 
 				const { jsPDF } = window.jspdf;
 				const doc = new jsPDF();
-				// 🌫️ fundo suave (cinza azulado claro, não agride o olho)
 				doc.setFillColor(225, 230, 235);
 				doc.rect(0, 0, 210, 297, "F");
 				const anoSelecionado = parseInt(anoFiltroEl.value);
 
-				const meses = [
-					"Jan","Fev","Mar","Abr","Mai","Jun",
-					"Jul","Ago","Set","Out","Nov","Dez"
-				];
+				const meses = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
 
 				let dadosMes = Array(12).fill().map(() => ({
-					kmTotal: 0,
-					kmConsumo: 0,
-					litros: 0,
-					litrosConsumo: 0,
-					gasto: 0,
-					abastecimentos: 0
+					kmTotal: 0, kmConsumo: 0, litros: 0, litrosConsumo: 0, gasto: 0, abastecimentos: 0
 				}));
 
-				// AGRUPAR
 				historico.forEach(item => {
 					const d = new Date(item.dataISO);
 					if (d.getFullYear() === anoSelecionado) {
 						const m = d.getMonth();
-
 						dadosMes[m].litros += item.litros;
 						dadosMes[m].gasto += item.litros * item.valor;
 						dadosMes[m].abastecimentos++;
-
-						// KM TOTAL (sempre soma se existir)
-						if (item.kmRodado) {
-							dadosMes[m].kmTotal += item.kmRodado;
-						}
-
-						// só entra na média se for válido
+						if (item.kmRodado) dadosMes[m].kmTotal += item.kmRodado;
 						if (item.consumo && item.kmCalculado) {
-						
-						    dadosMes[m].kmConsumo += item.kmCalculado;
-						
-						    dadosMes[m].litrosConsumo += item.litrosCalculados || 0;
+							dadosMes[m].kmConsumo += item.kmCalculado;
+							dadosMes[m].litrosConsumo += item.litrosCalculados || 0;
 						}
 					}
 				});
 
-				//  TOTAL REAL (independente de tanque cheio)
-				let totalKm = 0;
-				let totalLitros = 0;
-				let totalGasto = 0;
-				
-				// KM REAL DO CARRO
-				dadosMes.forEach(m => {
-					totalKm += m.kmTotal;     // soma TODOS km
-					totalLitros += m.litros; // soma TODOS litros
-					totalGasto += m.gasto;
-				});
-				
-				// média continua usando apenas abastecimentos válidos
-				let kmMedia = 0;
-				let litrosMedia = 0;
-				
-				dadosMes.forEach(m => {
-					kmMedia += m.kmConsumo;
-					litrosMedia += m.litrosConsumo;
-				});
-				
-				const mediaAnual = litrosMedia > 0
-					? (kmMedia / litrosMedia)
-					: 0;
+				let totalKm = 0, totalLitros = 0, totalGasto = 0;
+				dadosMes.forEach(m => { totalKm += m.kmTotal; totalLitros += m.litros; totalGasto += m.gasto; });
 
-				let melhorMes = "-";
-				let piorMes = "-";
-				let melhorValor = null;
-				let piorValor = null;
+				let kmMedia = 0, litrosMedia = 0;
+				dadosMes.forEach(m => { kmMedia += m.kmConsumo; litrosMedia += m.litrosConsumo; });
+
+				const mediaAnual = litrosMedia > 0 ? (kmMedia / litrosMedia) : 0;
+
+				let melhorMes = "-", piorMes = "-", melhorValor = null, piorValor = null;
 
 				dadosMes.forEach((m, i) => {
 					if (m.kmConsumo > 0 && m.litrosConsumo > 0) {
 						let consumo = m.kmConsumo / m.litrosConsumo;
-
-						if (melhorValor === null || consumo > melhorValor) {
-							melhorValor = consumo;
-							melhorMes = meses[i];
-						}
-
-						if (piorValor === null || consumo < piorValor) {
-							piorValor = consumo;
-							piorMes = meses[i];
-						}
+						if (melhorValor === null || consumo > melhorValor) { melhorValor = consumo; melhorMes = meses[i]; }
+						if (piorValor === null || consumo < piorValor) { piorValor = consumo; piorMes = meses[i]; }
 					}
 				});
 
-				// 🎨 HEADER MODERNO
-				doc.setFillColor(2, 6, 23); 
+				doc.setFillColor(2, 6, 23);
 				doc.rect(0, 0, 210, 35, "F");
 				doc.setDrawColor(0, 255, 140);
 				doc.setLineWidth(0.5);
@@ -1429,23 +1387,18 @@
 				doc.setTextColor(0, 255, 140);
 				doc.text("Sistema de Controle", 150, 20);
 
-				// LINHA DIVISÓRIA
 				doc.setDrawColor(51, 65, 85);
 				doc.line(10, 30, 200, 30);
 
-
-				// 📊 KPIs EM GRID
 				let y = 45;
 
 				function kpiBox(x, y, titulo, valor) {
 					doc.setFillColor(10, 15, 30);
 					doc.setDrawColor(0, 255, 140);
-					doc.roundedRect(x, y, 90, 22, 4, 4, "FD"); // F + D (fill + border)
-
-					doc.setTextColor(180, 180, 180); 
+					doc.roundedRect(x, y, 90, 22, 4, 4, "FD");
+					doc.setTextColor(180, 180, 180);
 					doc.setFontSize(9);
 					doc.text(titulo, x + 5, y + 7);
-
 					doc.setTextColor(0, 255, 140);
 					doc.setFontSize(14);
 					doc.text(valor, x + 5, y + 16);
@@ -1453,97 +1406,61 @@
 
 				kpiBox(10, y, "Média KM/L", mediaAnual.toFixed(2));
 				kpiBox(110, y, "Total KM", totalKm.toFixed(0));
-
 				y += 28;
-
 				kpiBox(10, y, "Total Litros", totalLitros.toFixed(1) + " L");
 				kpiBox(110, y, "Gasto Total", "R$ " + totalGasto.toFixed(2));
-
 				y += 35;
 
-				// 🏆 DESTAQUES
 				doc.setFontSize(12);
-
 				if (melhorValor !== null) {
 					doc.setTextColor(0, 255, 140);
 					doc.text(`Melhor: ${melhorMes} (${melhorValor.toFixed(2)} km/l)`, 10, y);
 				} else {
-					doc.setTextColor(0, 255, 140); // VERDE neon
+					doc.setTextColor(0, 255, 140);
 					doc.text("Melhor: Sem dados suficientes", 10, y);
 				}
-
 				y += 8;
-
 				doc.setTextColor(255, 120, 0);
-
-				doc.text(
-				`Pior: ${piorValor !== null ? piorMes + " (" + piorValor.toFixed(2) + " km/l)" : "Sem dados suficientes"}`,
-				10,
-				y
-				);
-
+				doc.text(`Pior: ${piorValor !== null ? piorMes + " (" + piorValor.toFixed(2) + " km/l)" : "Sem dados suficientes"}`, 10, y);
 				y += 18;
 
-				// 🧠 cabeçalho da tabela
 				doc.setTextColor(0, 255, 140);
 				doc.setFontSize(10);
-
 				doc.text("Mês", 12, y);
 				doc.text("KM Total", 60, y, { align: "right" });
 				doc.text("KM Consumo", 90, y, { align: "right" });
 				doc.text("L", 115, y, { align: "right" });
 				doc.text("KM/L", 140, y, { align: "right" });
 				doc.text("R$", 190, y, { align: "right" });
-
 				y += 6;
 
-				// linha abaixo do header
 				doc.setDrawColor(0, 255, 140);
 				doc.setLineWidth(0.3);
 				doc.line(10, y, 200, y);
-
 				y += 4;
-				// 🔳 container da tabela (fundo + borda neon)
+
 				const tabelaYInicio = y;
 				const alturaLinha = 8;
 				const tabelaAltura = dadosMes.length * alturaLinha;
-				// 🔳 container da tabela (AGORA CERTO)
+
 				doc.setFillColor(3, 8, 20);
 				doc.roundedRect(8, tabelaYInicio - 6, 194, tabelaAltura + 6, 4, 4, "F");
-
-				// borda neon fina
 				doc.setDrawColor(0, 255, 140);
 				doc.setLineWidth(0.4);
 				doc.roundedRect(8, tabelaYInicio - 6, 194, tabelaAltura + 6, 4, 4, "D");
-
-				// glow leve
 				doc.setLineWidth(0.8);
 				doc.roundedRect(8.3, tabelaYInicio - 5.7, 193.4, tabelaAltura + 5.4, 4, 4, "D");
+
 				dadosMes.forEach((m, i) => {
-					if (y > 270) {
-						doc.addPage();
-						y = 20;
-					}
+					if (y > 270) { doc.addPage(); y = 20; }
 
-					let consumo = (m.litrosConsumo > 0 && m.kmConsumo > 0)
-						? (m.kmConsumo / m.litrosConsumo)
-						: 0;
+					let consumo = (m.litrosConsumo > 0 && m.kmConsumo > 0) ? (m.kmConsumo / m.litrosConsumo) : 0;
 
-					// fundo SEMPRE escuro (zebra melhorado)
-					if (i % 2 === 0) {
-					doc.setFillColor(10, 15, 30); // azul escuro (igual KPIs)
-					} else {
-					doc.setFillColor(15, 23, 42); // variação do header
-					}
+					doc.setFillColor(...(i % 2 === 0 ? [10, 15, 30] : [15, 23, 42]));
 					doc.rect(10, y - 4, 190, 8, "F");
 
 					const semDados = m.kmTotal === 0 && m.litros === 0;
-
-					if (semDados) {
-					doc.setTextColor(90, 90, 90); // mais apagado ainda
-					} else {
-					doc.setTextColor(220, 255, 240); // leve tom esverdeado
-					}
+					doc.setTextColor(...(semDados ? [90, 90, 90] : [220, 255, 240]));
 					doc.setFontSize(10);
 
 					doc.text(`${meses[i]}`, 12, y);
@@ -1556,14 +1473,11 @@
 					y += 8;
 				});
 
-				// 📌 RODAPÉ
 				doc.setDrawColor(51, 65, 85);
 				doc.line(10, 285, 200, 285);
-
 				doc.setFontSize(8);
-				doc.setTextColor(180, 180, 180); 
+				doc.setTextColor(180, 180, 180);
 				doc.text("Gerado automaticamente pelo sistema", 10, 290);
-
 				doc.text(new Date().toLocaleString(), 200, 290, { align: "right" });
 
 				doc.save(`relatorio_${anoSelecionado}.pdf`);
